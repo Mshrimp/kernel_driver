@@ -1,6 +1,9 @@
+ifndef ($(KERNELRELEASE),)
 obj-m := $(DRIVER_NAME).o
 $(DRIVER_NAME)-objs := $(DEVICE_RELYON)
+else
 
+.PHONY: all clean app
 
 def_chip := h3
 
@@ -24,12 +27,12 @@ CROSS_COMPLITE = arm-hisiv300-linux-
 DRIVER_NAME = hi3518ev200
 endif
 
-ifeq ($(PLATFORM),allwinner-h3)
+ifeq ($(PLATFORM),hi3518ev200)
 KERNEL_DIR = ~/netview/nvc-hi3518ev200-kernel/linux-3.4.y
 TARGET_DIR = /mnt/nfs/mcy/hi3518
 CROSS_COMPLITE = arm-hisiv300-linux-
 
-DRIVER_NAME = allwinner-h3
+DRIVER_NAME = hi3518ev200
 endif
 
 #########################################################
@@ -70,3 +73,4 @@ app:
 install:
 	-cp *.ko $(TARGET_DIR) -rf
 	cd test && make install
+endif
