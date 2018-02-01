@@ -1,6 +1,3 @@
-obj-m := $(DRIVER_NAME).o
-$(DRIVER_NAME)-objs := $(DEVICE_RELYON)
-
 
 def_chip := h3
 
@@ -45,6 +42,13 @@ endef
 
 #########################################################
 
+COLOR_NORMAL = \e[0m
+COLOR_RED = \e[1;31m
+COLOR_YELLOW = \e[1;33m
+COLOR_BLUE = \e[1;34m
+
+#########################################################
+
 CC = $(CROSS_COMPLITE)gcc
 
 #DRIVER_NAME = hi3518ev200
@@ -56,17 +60,31 @@ DEVICE_RELYON += i2c/i2c_gpio.o
 #DEVICE_RELYON += i2c/i2c.o
 #DEVICE_RELYON += fm36/fm36.o
 
-all:
+obj-m := $(DRIVER_NAME).o
+$(DRIVER_NAME)-objs := $(DEVICE_RELYON)
+
+all: notice
+	@echo -e "$(COLOR_YELLOW)make modules$(COLOR_NORMAL)"
+	-@rm chip/chip.h -rf
+	-@cp chip/$(PLATFORM)/gpio.h chip/chip.h -rf
 	make -C $(KERNEL_DIR) M=`pwd` modules
 
 clean:
+	@echo -e "$(COLOR_YELLOW)make clean$(COLOR_NORMAL)"
 	make -C $(KERNEL_DIR) M=`pwd` clean
 	cd test && make clean
+	-@rm chip/chip.h
 
 
 app:
+	@echo -e "$(COLOR_YELLOW)make app$(COLOR_NORMAL)"
 	cd test && make
 
 install:
+	@echo -e "$(COLOR_YELLOW)make install$(COLOR_NORMAL)"
 	-cp *.ko $(TARGET_DIR) -rf
 	cd test && make install
+
+notice:
+	@echo -e "$(COLOR_RED)platform = $(PLATFORM)$(COLOR_NORMAL)"
+

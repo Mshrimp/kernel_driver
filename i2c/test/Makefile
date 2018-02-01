@@ -37,7 +37,7 @@ notice:
 	@echo ""
 	@echo "***************** example ****************"
 	@echo "make chip=xxx"
-	@echo "xxx = hi3518ev100 or hi3518ev200 or goke"
+	@echo "xxx = hi3518ev200 or allwinner-h3"
 	@echo "make clean"
 	@echo "chip=$(chip)"
 	@echo "******************************************"
