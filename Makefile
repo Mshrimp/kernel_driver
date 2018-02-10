@@ -42,6 +42,13 @@ endef
 
 #########################################################
 
+COLOR_NORMAL = \e[0m
+COLOR_RED = \e[1;31m
+COLOR_YELLOW = \e[1;33m
+COLOR_BLUE = \e[1;34m
+
+#########################################################
+
 CC = $(CROSS_COMPLITE)gcc
 
 #DRIVER_NAME = hi3518ev200
@@ -56,17 +63,26 @@ DEVICE_RELYON += led/led.o
 obj-m := $(DRIVER_NAME).o
 $(DRIVER_NAME)-objs := $(DEVICE_RELYON)
 
-all:
+all: notice
+	@echo -e "$(COLOR_YELLOW)make modules$(COLOR_NORMAL)"
 	make -C $(KERNEL_DIR) M=`pwd` modules
 
 clean:
+	@echo -e "$(COLOR_YELLOW)make clean$(COLOR_NORMAL)"
 	make -C $(KERNEL_DIR) M=`pwd` clean
 	cd test && make clean
+	-@rm chip/chip.h
 
 
 app:
+	@echo -e "$(COLOR_YELLOW)make app$(COLOR_NORMAL)"
 	cd test && make
 
 install:
+	@echo -e "$(COLOR_YELLOW)make install$(COLOR_NORMAL)"
 	-cp *.ko $(TARGET_DIR) -rf
 	cd test && make install
+
+notice:
+	@echo -e "$(COLOR_RED)platform = $(PLATFORM)$(COLOR_NORMAL)"
+

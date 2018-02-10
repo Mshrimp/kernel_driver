@@ -39,26 +39,30 @@ static unsigned int drv_poll(struct file *filp, struct poll_table_struct *table)
 
 static long drv_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
 {
-	//int ret = -1;
+    /*
+	 *int ret = -1;
+     */
 	DRV_DEBUG("driver ioctl, cmd = 0x%X", cmd);
 
-/*	
-	if (_IOC_TYPE(cmd) != FM36_IOC_MAGIC) {
-		DRV_ERROR("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
-		return -EINVAL;
-	}
+/*
+ *    if (_IOC_TYPE(cmd) != FM36_IOC_MAGIC) {
+ *        DRV_ERROR("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
+ *        return -EINVAL;
+ *    }
+ *
+ *    if (_IOC_NR(cmd) > FM36_IOC_MAXNR) {
+ *        DRV_ERROR("ioctl cmd nr error, nr = %d", _IOC_NR(cmd));
+ *        return -EINVAL;
+ *    }
+ */
 
-	if (_IOC_NR(cmd) > FM36_IOC_MAXNR) {
-		DRV_ERROR("ioctl cmd nr error, nr = %d", _IOC_NR(cmd));
-		return -EINVAL;
-	}
-
-	ret = fm36_operation(cmd, args);
-	if (ret) {
-		DRV_ERROR("fm36 operation failed");
-		return -EFAULT;
-	}
-*/
+    /*
+	 *ret = fm36_operation(cmd, args);
+	 *if (ret) {
+	 *    DRV_ERROR("fm36 operation failed");
+	 *    return -EFAULT;
+	 *}
+     */
 
 	return 0;
 }

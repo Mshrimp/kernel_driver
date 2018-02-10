@@ -3,6 +3,7 @@
 #include <linux/errno.h>
 #include <linux/delay.h>
 
+#include "../chip/chip.h"
 #include "i2c_gpio.h"
 
 #define	I2C_DELAY			10
