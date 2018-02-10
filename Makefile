@@ -71,7 +71,6 @@ clean:
 	@echo -e "$(COLOR_YELLOW)make clean$(COLOR_NORMAL)"
 	make -C $(KERNEL_DIR) M=`pwd` clean
 	cd test && make clean
-	-@rm chip/chip.h
 
 
 app:
