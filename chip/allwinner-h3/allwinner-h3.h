@@ -73,10 +73,10 @@
 #define	GPIOL_BIT_NUM					12
 
 #define	GPIO_BASE_ADDR					0x01C20800
-#define	GPIO_CTRL_BASE_ADDR(grp)		(GPIO_BASE_ADDR + (nr) * 0x24)
-#define	GPIO_DATA_BASE_ADDR(grp)		(GPIO_BASE_ADDR + (nr) * 0x24 + 0x10)
+#define	GPIO_CTRL_BASE_ADDR(grp)		(GPIO_BASE_ADDR + (grp) * 0x24)
+#define	GPIO_DATA_BASE_ADDR(grp)		(GPIO_BASE_ADDR + (grp) * 0x24 + 0x10)
 
-#define	GPIO_CRTL_ADDR(group, nr)				\
+#define	GPIO_CTRL_ADDR(group, nr)				\
 		(GPIO_CTRL_BASE_ADDR(group) + ((nr) / 8) * 0x04)
 		//(GPIO_CTRL_BASE_ADDR(group) + (((nr) < 8) ? 0x00 : (((nr) < 16) ? 0x04 : 0x08)))
 
@@ -101,7 +101,7 @@
 
 #define	SET_GPIO_OUTPUT_HIGH(grp, bit)		SET_REG_BIT(GPIO_DATA_ADDR(grp), bit)
 #define	SET_GPIO_OUTPUT_LOW(grp, bit)		CLR_REG_BIT(GPIO_DATA_ADDR(grp), bit)
-#define	SET_GPIO_OUTPUT_VAL(grp, bit, val)	SET_REG_BIT(GPIO_DATA_ADDR(grp), bit, val)
+#define	SET_GPIO_OUTPUT_VAL(grp, bit, val)	SET_REG_BIT_VAL(GPIO_DATA_ADDR(grp), bit, val)
 
 #define	GET_GPIO_VAL(grp, bit)				GET_REG_BIT(GPIO_DATA_ADDR(grp), bit)
 

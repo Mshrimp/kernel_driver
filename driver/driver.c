@@ -3,9 +3,9 @@
 #include <linux/miscdevice.h>
 #include <linux/fs.h>
 
-#include "fm36/fm36.h"
+//#include "fm36/fm36_gpio.h"
 
-#define	DRIVER_NAME					"hi3518ev200"
+#define	DRIVER_NAME					"h3"
 
 #define	DRV_DEBUG(fmt, args...)		\
 			printk("Driver debug: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
@@ -39,9 +39,10 @@ static unsigned int drv_poll(struct file *filp, struct poll_table_struct *table)
 
 static long drv_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
 {
-	int ret = -1;
+	//int ret = -1;
 	DRV_DEBUG("driver ioctl, cmd = 0x%X", cmd);
 
+/*	
 	if (_IOC_TYPE(cmd) != FM36_IOC_MAGIC) {
 		DRV_ERROR("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
 		return -EINVAL;
@@ -57,6 +58,7 @@ static long drv_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
 		DRV_ERROR("fm36 operation failed");
 		return -EFAULT;
 	}
+*/
 
 	return 0;
 }
@@ -65,7 +67,9 @@ static int drv_open(struct inode *inodp, struct file *filp)
 {
 	DRV_DEBUG("driver open");
 
+/*
 	fm36_init();
+*/
 
     /*
 	 *fm36_gpio_test();
@@ -78,7 +82,7 @@ static int drv_release(struct inode *inodp, struct file *filp)
 {
 	DRV_DEBUG("driver release");
 
-	fm36_uninit();
+	//fm36_uninit();
 
 	return 0;
 }

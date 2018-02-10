@@ -17,6 +17,10 @@ ifeq ($(chip),goke)
 export NV_CROSS_COMPILE?=arm-goke-linux-uclibcgnueabi
 endif
 
+ifeq ($(chip),h3)
+export NV_CROSS_COMPILE?=arm-cortexa9-linux-gnueabihf
+endif
+
 TARGET_DIR=/mnt/nfs/${USER}/hi3518
 COMMON_HEAD_FILE=../common.h
 TEST_HEAD_LN_FILE=common.h
@@ -40,6 +44,7 @@ notice:
 	@echo "xxx = hi3518ev100 or hi3518ev200 or goke"
 	@echo "make clean"
 	@echo "chip=$(chip)"
+	@echo "Cross_Compile=$(NV_CROSS_COMPILE)"
 	@echo "******************************************"
 
 head:

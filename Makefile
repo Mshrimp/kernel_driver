@@ -1,7 +1,3 @@
-obj-m := $(DRIVER_NAME).o
-$(DRIVER_NAME)-objs := $(DEVICE_RELYON)
-
-
 def_chip := h3
 
 chip ?= $(def_chip)
@@ -25,9 +21,10 @@ DRIVER_NAME = hi3518ev200
 endif
 
 ifeq ($(PLATFORM),allwinner-h3)
-KERNEL_DIR = ~/netview/nvc-hi3518ev200-kernel/linux-3.4.y
+KERNEL_DIR = /home/mcy/kernel/linux-3.4
+#KERNEL_DIR = ~/kernel/linux-3.4
 TARGET_DIR = /mnt/nfs/mcy/hi3518
-CROSS_COMPLITE = arm-hisiv300-linux-
+CROSS_COMPLITE = arm-cortexa9-linux-gnueabihf-
 
 DRIVER_NAME = allwinner-h3
 endif
@@ -51,10 +48,13 @@ CC = $(CROSS_COMPLITE)gcc
 
 DEVICE_RELYON := driver/driver.o
 DEVICE_RELYON += chip/$(PLATFORM)/gpio.o
-#DEVICE_RELYON += led/led.o
-DEVICE_RELYON += i2c/i2c_gpio.o
+DEVICE_RELYON += led/led.o
+#DEVICE_RELYON += i2c/i2c_gpio.o
 #DEVICE_RELYON += i2c/i2c.o
 #DEVICE_RELYON += fm36/fm36.o
+
+obj-m := $(DRIVER_NAME).o
+$(DRIVER_NAME)-objs := $(DEVICE_RELYON)
 
 all:
 	make -C $(KERNEL_DIR) M=`pwd` modules

@@ -3,6 +3,7 @@
 #include <linux/mutex.h>
 
 #include "led.h"
+#include "../chip/chip.h"
 
 #define	LED_GET_STATUS			2	// Just for module test
 
