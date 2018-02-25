@@ -4,6 +4,7 @@
 #include <linux/fs.h>
 
 //#include "fm36/fm36_gpio.h"
+#include "../led/led.h"
 
 #define	DRIVER_NAME					"h3"
 
@@ -71,6 +72,8 @@ static int drv_open(struct inode *inodp, struct file *filp)
 {
 	DRV_DEBUG("driver open");
 
+	// led_init();
+
 /*
 	fm36_init();
 */
@@ -86,6 +89,7 @@ static int drv_release(struct inode *inodp, struct file *filp)
 {
 	DRV_DEBUG("driver release");
 
+	// led_uninit();
 	//fm36_uninit();
 
 	return 0;

@@ -4,7 +4,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "../fm36/fm36.h"
+#include "../fm36/fm36_gpio.h"
 
 #define	DRIVER_NAME			"/dev/hi3518ev200"
 

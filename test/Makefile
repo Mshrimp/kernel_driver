@@ -7,10 +7,12 @@ endif
 
 ifeq ($(chip),hi3518ev100)
 export NV_CROSS_COMPILE?=arm-hisiv100nptl-linux
+TARGET_DIR=/mnt/nfs/${USER}/hi3518
 endif
 
 ifeq ($(chip),hi3518ev200)
 export NV_CROSS_COMPILE?=arm-hisiv300-linux
+TARGET_DIR=/mnt/nfs/${USER}/hi3518
 endif
 
 ifeq ($(chip),goke)
@@ -19,9 +21,9 @@ endif
 
 ifeq ($(chip),h3)
 export NV_CROSS_COMPILE?=arm-cortexa9-linux-gnueabihf
+TARGET_DIR=/mnt
 endif
 
-TARGET_DIR=/mnt/nfs/${USER}/hi3518
 COMMON_HEAD_FILE=../common.h
 TEST_HEAD_LN_FILE=common.h
 BIN_SOURCE:=$(wildcard ./app_*.c)
@@ -39,7 +41,7 @@ all:notice head $(BIN_TARGET)
 
 notice:
 	@echo ""
-	@echo "***************** example ****************"
+	@echo "***************** make app ****************"
 	@echo "make chip=xxx"
 	@echo "xxx = hi3518ev200 or allwinner-h3"
 	@echo "make clean"
@@ -56,4 +58,4 @@ clean:
 	@echo clear done
 
 install:
-	-cp build/app_* $(TARGET_DIR) -rf
+	-sudo cp build/app_* $(TARGET_DIR) -rf
