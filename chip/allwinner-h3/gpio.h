@@ -6,6 +6,8 @@
 #include <linux/errno.h>
 #include <linux/delay.h>
 
+#include "allwinner-h3.h"
+
 // GPIO
 
 typedef struct {

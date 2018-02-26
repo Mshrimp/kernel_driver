@@ -25,9 +25,10 @@ typedef struct {
 
 static led_info_t led_info = {
 	.gpio = {
-		.group = 4,
-		.bit = 5,
+		.group = GPIOG,
+		.bit = 11,
 	},
+	.normal = 0,
 };
 
 static int led_set_on(void)
@@ -42,6 +43,7 @@ static int led_set_on(void)
 
 	mutex_lock(&led_info.mutex);
 	ret = set_gpio_output_val(&led_info.gpio, !led_info.normal);
+	//ret = set_gpio_output_high(&led_info.gpio);
 	if (ret) {
 		led_error("set on failed, ret = %d", ret);
 		return -1;
@@ -64,6 +66,7 @@ static int led_set_off(void)
 
 	mutex_lock(&led_info.mutex);
 	ret = set_gpio_output_val(&led_info.gpio, led_info.normal);
+	//ret = set_gpio_output_low(&led_info.gpio);
 	if (ret) {
 		led_error("set off failed, ret = %d", ret);
 		return -1;
@@ -104,11 +107,13 @@ static int led_gpio_init(void)
 		return -1;
 	}
 
-	ret = led_set_off();
-	if (ret) {
-		led_error("set off failed");
-		return -1;
-	}
+    /*
+	 *ret = led_set_off();
+	 *if (ret) {
+	 *    led_error("set off failed");
+	 *    return -1;
+	 *}
+     */
 
 	return 0;
 }
@@ -124,8 +129,10 @@ int led_init(void)
 	mutex_init(&led_info.mutex);
 
 	spin_lock(&led_info.lock);
-	led_info.normal = 0;
-	led_info.status = LED_OFF;
+    /*
+	 *led_info.normal = 0;
+	 *led_info.status = LED_OFF;
+     */
 	spin_unlock(&led_info.lock);
 
 	ret = led_gpio_init();

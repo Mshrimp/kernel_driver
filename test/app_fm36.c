@@ -6,7 +6,8 @@
 
 #include "../fm36/fm36_gpio.h"
 
-#define	DRIVER_NAME			"/dev/hi3518ev200"
+//#define	DRIVER_NAME			"/dev/hi3518ev200"
+#define	DRIVER_NAME			"/dev/h3"
 
 
 #define	app_debug(fmt, args...)		\

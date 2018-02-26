@@ -83,21 +83,21 @@
 #define	GPIO_DATA_ADDR(group)			GPIO_DATA_BASE_ADDR(group)
 
 #define	GPIOA							0x0
-#define	GPIOC							0x1
-#define	GPIOD							0x2
-#define	GPIOE							0x3
-#define	GPIOF							0x4
-#define	GPIOG							0x5
-#define	GPIOL							0x6
+#define	GPIOC							0x2
+#define	GPIOD							0x3
+#define	GPIOE							0x4
+#define	GPIOF							0x5
+#define	GPIOG							0x6
+//#define	GPIOL							0x6
 
 #define	GPIO_INPUT						0x0
 #define	GPIO_OUTPUT						0x1
 #define	GPIO_DISABLE					0x7
 
 #define	SET_GPIO_DIR_OUTPUT(grp, bit)	\
-			SET_REG_BITS_VAL(GPIO_CTRL_ADDR(grp, bit), bit, 4, GPIO_OUTPUT)
+			SET_REG_BITS_VAL(GPIO_CTRL_ADDR(grp, bit), ((bit) % 8) * 4, 3, GPIO_OUTPUT)
 #define	SET_GPIO_DIR_INPUT(grp, bit)	\
-			SET_REG_BITS_VAL(GPIO_CTRL_ADDR(grp, bit), bit, 4, GPIO_INPUT)
+			SET_REG_BITS_VAL(GPIO_CTRL_ADDR(grp, bit), ((bit) % 8) * 4, 3, GPIO_INPUT)
 
 #define	SET_GPIO_OUTPUT_HIGH(grp, bit)		SET_REG_BIT(GPIO_DATA_ADDR(grp), bit)
 #define	SET_GPIO_OUTPUT_LOW(grp, bit)		CLR_REG_BIT(GPIO_DATA_ADDR(grp), bit)
