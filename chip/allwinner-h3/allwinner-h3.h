@@ -46,7 +46,7 @@
 	do {										\
 		unsigned long int val;					\
 		val = GET_REG_VAL(addr);				\
-		val &= (((0x1 << (num)) - 1) << (bit));	\
+		val &= ~(((0x1 << (num)) - 1) << (bit));	\
 		val |= ((data) << (bit));				\
 		SET_REG_VAL(val, addr);					\
 	} while (0)

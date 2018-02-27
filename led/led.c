@@ -25,7 +25,7 @@ typedef struct {
 
 static led_info_t led_info = {
 	.gpio = {
-		.group = GPIOG,
+		.group = GPIOA,
 		.bit = 11,
 	},
 	.normal = 0,
