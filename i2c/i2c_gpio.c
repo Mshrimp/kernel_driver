@@ -164,6 +164,9 @@ int i2c_stop(void)
 	i2c_debug("i2c_stop");
 
 	mutex_lock(&i2c_info.i2c_mutex);
+	SET_SDA_OUT;
+	udelay(I2C_DELAY);
+
 	SET_SCL_LOW;
 	udelay(I2C_DELAY);
 
@@ -185,6 +188,9 @@ static int i2c_send_ack(void)
 	i2c_debug("i2c_send_ack");
 
 	mutex_lock(&i2c_info.i2c_mutex);
+	SET_SDA_OUT;
+	udelay(I2C_DELAY);
+
 	SET_SCL_LOW;
 	udelay(I2C_DELAY);
 
@@ -206,6 +212,9 @@ static int i2c_send_noack(void)
 	i2c_debug("i2c_send_noack");
 
 	mutex_lock(&i2c_info.i2c_mutex);
+	SET_SDA_OUT;
+	udelay(I2C_DELAY);
+
 	SET_SCL_LOW;
 	udelay(I2C_DELAY);
 
@@ -229,19 +238,25 @@ static int i2c_wait_ack(void)
 	i2c_debug("i2c_wait_ack");
 
 	mutex_lock(&i2c_info.i2c_mutex);
-	SET_SDA_HIGH;
+	SET_SDA_OUT;
 	udelay(I2C_DELAY);
 
 	SET_SCL_LOW;
 	udelay(I2C_DELAY);
 
+	SET_SDA_HIGH;
+	udelay(I2C_DELAY);
+	i2c_debug("GET_SDA_VAL High: %d", GET_SDA_VAL);
+
 	SET_SDA_IN;
 	udelay(I2C_DELAY);
+	i2c_debug("GET_SDA_VAL: %d", GET_SDA_VAL);
 
 	SET_SCL_HIGH;
 	udelay(I2C_DELAY);
 
 	ack_times = 0;
+	i2c_debug("GET_SDA_VAL: %d", GET_SDA_VAL);
 	while (GET_SDA_VAL) {
 		ack_times++;
 		i2c_debug("i2c_wait_ack, ack_times = %d", ack_times);

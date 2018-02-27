@@ -105,10 +105,10 @@ int oled_operation(unsigned int cmd, unsigned long args)
 
 	switch (cmd) {
 	case OLED_IOC_CLEAR:
-		oled_fill_screen(0x00);
+		ret = oled_fill_screen(0x00);
 		break;
 	case OLED_IOC_FULL:
-		oled_fill_screen(0xFF);
+		ret = oled_fill_screen(0xFF);
 		break;
 	default:
 		oled_error("cmd error no = %d", cmd);
