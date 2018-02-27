@@ -48,7 +48,7 @@ int get_gpio_val(gpio_t *gpio)
 {
 	unsigned long ret = 0;
 
-	SET_GPIO_DIR_INPUT(gpio->group, gpio->bit);
+	//SET_GPIO_DIR_INPUT(gpio->group, gpio->bit);
 	ret = GET_GPIO_VAL(gpio->group, gpio->bit);
 
 	return ret;

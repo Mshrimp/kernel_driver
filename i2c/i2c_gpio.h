@@ -11,6 +11,8 @@ int i2c_ack(u8 ack_status);
 
 int i2c_write_byte(u8 data);
 
+int i2c_write_byte_with_ack(u8 data);
+
 int i2c_read_byte(u8 *data);
 
 int i2c_test_scl_gpio(void);

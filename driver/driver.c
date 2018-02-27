@@ -5,6 +5,7 @@
 
 //#include "fm36/fm36_gpio.h"
 #include "../led/led.h"
+#include "../oled/oled_gpio.h"
 
 #define	DRIVER_NAME					"h3"
 
@@ -38,29 +39,36 @@ static unsigned int drv_poll(struct file *filp, struct poll_table_struct *table)
 	return 0;
 }
 
-static long drv_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
-{
-	int ret = -1;
-	DRV_DEBUG("driver ioctl, cmd = 0x%X", cmd);
-
-	if (_IOC_TYPE(cmd) != LED_IOC_MAGIC) {
-		DRV_ERROR("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
-		return -EINVAL;
-	}
-	DRV_DEBUG("_IOC_TYPE(cmd) = 0x%X", _IOC_TYPE(cmd));
-
-	if (_IOC_NR(cmd) > LED_IOC_MAXNR) {
-		DRV_ERROR("ioctl cmd nr error, nr = %d", _IOC_NR(cmd));
-		return -EINVAL;
-	}
-	DRV_DEBUG("_IOC_NR(cmd) = %d", _IOC_NR(cmd));
-
-	ret = led_operation(cmd, args);
-	if (ret) {
-		DRV_ERROR("led operation failed");
-		return -EFAULT;
-	}
 /*
+ *static int drv_led_work(unsigned int cmd, unsigned long args)
+ *{
+ *    int ret = -1;
+ *    if (_IOC_TYPE(cmd) != LED_IOC_MAGIC) {
+ *        DRV_ERROR("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
+ *        return -EINVAL;
+ *    }
+ *    DRV_DEBUG("_IOC_TYPE(cmd) = 0x%X", _IOC_TYPE(cmd));
+ *
+ *    if (_IOC_NR(cmd) > LED_IOC_MAXNR) {
+ *        DRV_ERROR("ioctl cmd nr error, nr = %d", _IOC_NR(cmd));
+ *        return -EINVAL;
+ *    }
+ *    DRV_DEBUG("_IOC_NR(cmd) = %d", _IOC_NR(cmd));
+ *
+ *    ret = led_operation(cmd, args);
+ *    if (ret) {
+ *        DRV_ERROR("led operation failed");
+ *        return -EFAULT;
+ *    }
+ *
+ *    return ret;
+ *}
+ */
+
+/*
+ *static int drv_fm36_work(unsigned int cmd, unsigned long args)
+ *{
+ *    int ret = -1;
  *    if (_IOC_TYPE(cmd) != FM36_IOC_MAGIC) {
  *        DRV_ERROR("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
  *        return -EINVAL;
@@ -70,15 +78,59 @@ static long drv_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
  *        DRV_ERROR("ioctl cmd nr error, nr = %d", _IOC_NR(cmd));
  *        return -EINVAL;
  *    }
+ *
+ *    ret = fm36_operation(cmd, args);
+ *    if (ret) {
+ *        DRV_ERROR("fm36 operation failed");
+ *        return -EFAULT;
+ *    }
+ *    return ret;
+ *}
  */
 
+static int drv_oled_working(unsigned int cmd, unsigned long args)
+{
+	int ret = -1;
+	if (_IOC_TYPE(cmd) != OLED_IOC_MAGIC) {
+		DRV_ERROR("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
+		return -EINVAL;
+	}
+	DRV_DEBUG("_IOC_TYPE(cmd) = 0x%X", _IOC_TYPE(cmd));
+
+	if (_IOC_NR(cmd) > OLED_IOC_MAXNR) {
+		DRV_ERROR("ioctl cmd nr error, nr = %d", _IOC_NR(cmd));
+		return -EINVAL;
+	}
+	DRV_DEBUG("_IOC_NR(cmd) = %d", _IOC_NR(cmd));
+
+	ret = oled_operation(cmd, args);
+	if (ret) {
+		DRV_ERROR("oled operation failed");
+		return -EFAULT;
+	}
+
+	return ret;
+}
+
+static long drv_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
+{
+	int ret = -1;
+	DRV_DEBUG("driver ioctl, cmd = 0x%X", cmd);
+
     /*
-	 *ret = fm36_operation(cmd, args);
+	 *ret = drv_led_work(cmd, args);
 	 *if (ret) {
-	 *    DRV_ERROR("fm36 operation failed");
+	 *    DRV_ERROR("drv_led_work failed");
 	 *    return -EFAULT;
 	 *}
      */
+
+	ret = drv_oled_working(cmd, args);
+	if (ret) {
+		DRV_ERROR("drv_oled_working failed");
+		return -EFAULT;
+	}
+
 
 	return 0;
 }
@@ -87,7 +139,7 @@ static int drv_open(struct inode *inodp, struct file *filp)
 {
 	DRV_DEBUG("driver open");
 
-	led_init();
+	oled_init();
 
 /*
 	fm36_init();
@@ -104,7 +156,7 @@ static int drv_release(struct inode *inodp, struct file *filp)
 {
 	DRV_DEBUG("driver release");
 
-	led_uninit();
+	oled_uninit();
 	//fm36_uninit();
 
 	return 0;

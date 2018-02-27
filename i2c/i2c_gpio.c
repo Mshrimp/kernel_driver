@@ -44,12 +44,12 @@ typedef struct {
 
 static i2c_info_t i2c_info = {
 	.scl = {
-		.group = 3,
-		.bit = 5,
+		.group = GPIOA,
+		.bit = 11,
 	},
 	.sda = {
-		.group = 3,
-		.bit = 6,
+		.group = GPIOA,
+		.bit = 12,
 	},
 };
 
@@ -226,15 +226,16 @@ static int i2c_wait_ack(void)
 {
 	int ack_times = 0;
 	int ret = 0;
+	i2c_debug("i2c_wait_ack");
 
 	mutex_lock(&i2c_info.i2c_mutex);
 	SET_SDA_HIGH;
 	udelay(I2C_DELAY);
 
-	SET_SDA_IN;
+	SET_SCL_LOW;
 	udelay(I2C_DELAY);
 
-	SET_SCL_LOW;
+	SET_SDA_IN;
 	udelay(I2C_DELAY);
 
 	SET_SCL_HIGH;
@@ -243,8 +244,10 @@ static int i2c_wait_ack(void)
 	ack_times = 0;
 	while (GET_SDA_VAL) {
 		ack_times++;
+		i2c_debug("i2c_wait_ack, ack_times = %d", ack_times);
 		if (ack_times == 10) {
 			ret = 1;
+			i2c_error("i2c ack error, no ack");
 			break;
 		}
 	}
@@ -285,6 +288,7 @@ int i2c_write_byte(u8 data)
 {
 	unsigned long flag = 0;
 	u8 i = 0;
+	i2c_debug("i2c_write_byte: 0x%X", data);
 
 	local_irq_save(flag);
 	preempt_disable();
@@ -311,6 +315,19 @@ int i2c_write_byte(u8 data)
 	mutex_unlock(&i2c_info.i2c_mutex);
 	preempt_enable();
 	local_irq_restore(flag);
+
+	return 0;
+}
+
+int i2c_write_byte_with_ack(u8 data)
+{
+	i2c_debug("i2c_write_byte_with_ack: 0x%X", data);
+	i2c_write_byte(data);
+	if (i2c_ack(I2C_WAIT_ACK)) {
+		i2c_error("wait ack failed, no ack");
+		i2c_stop();
+		return -1;
+	}
 
 	return 0;
 }

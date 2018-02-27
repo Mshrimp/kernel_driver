@@ -9,6 +9,9 @@
 
 #define	OLED_CHIP_ADDR			SSD1306_CHIP_ADDR
 
+#define	OLED_MAX_ROW			1
+#define	OLED_MAX_COL			2
+
 #define	oled_debug(fmt, args...)		\
 			printk("OLED debug: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
 #define	oled_error(fmt, args...)		\
@@ -27,8 +30,47 @@ static oled_info_t oled_info = {
 
 };
 
+int oled_write_commond(unsigned char cmd)
+{
+	oled_debug("oled_write_commond: 0x%X", cmd);
+	i2c_start();
+	i2c_write_byte_with_ack(OLED_CHIP_ADDR);
+	i2c_write_byte_with_ack(0x00);
+	i2c_write_byte_with_ack(cmd);
+	i2c_stop();
 
+	return 0;
+}
 
+int oled_write_data(unsigned char data)
+{
+	oled_debug("oled_write_data: 0x%X", data);
+	i2c_start();
+	i2c_write_byte_with_ack(OLED_CHIP_ADDR);
+	i2c_write_byte_with_ack(0x40);
+	i2c_write_byte_with_ack(data);
+	i2c_stop();
+
+	return 0;
+}
+
+int oled_fill_screen(unsigned char data)
+{
+	unsigned char row, col;
+	oled_debug("oled_fill_screen: 0x%X", data);
+
+	for (row = 0; row < OLED_MAX_ROW; row++) {
+		oled_write_commond(0xB0 | row);
+		oled_write_commond(0x00);
+		oled_write_commond(0x10);
+
+		for (col = 0; col < OLED_MAX_COL; col++) {
+			oled_write_data(data);
+		}
+	}
+
+	return 0;
+}
 
 int oled_init(void)
 {
@@ -62,6 +104,20 @@ int oled_operation(unsigned int cmd, unsigned long args)
 	int ret = -1;
 
 	switch (cmd) {
+	case OLED_IOC_CLEAR:
+		oled_fill_screen(0x00);
+		break;
+	case OLED_IOC_FULL:
+		oled_fill_screen(0xFF);
+		break;
+	default:
+		oled_error("cmd error no = %d", cmd);
+		ret = -EINVAL;
+		break;
+	}
+
+	if (ret) {
+		oled_error("oled operation failed");
 	}
 
 	return ret;
