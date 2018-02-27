@@ -38,7 +38,6 @@ static int led_set_on(void)
 
 	if (LED_ON == led_info.status) {
 		led_debug("already on");
-		return 0;
 	}
 
 	mutex_lock(&led_info.mutex);
@@ -61,7 +60,6 @@ static int led_set_off(void)
 
 	if (LED_OFF == led_info.status) {
 		led_debug("already off");
-		return 0;
 	}
 
 	mutex_lock(&led_info.mutex);
@@ -107,18 +105,16 @@ static int led_gpio_init(void)
 		return -1;
 	}
 
-    /*
-	 *ret = led_set_off();
-	 *if (ret) {
-	 *    led_error("set off failed");
-	 *    return -1;
-	 *}
-     */
+	ret = led_set_off();
+	if (ret) {
+		led_error("set off failed");
+		return -1;
+	}
 
 	return 0;
 }
 
-/* Ir led module frame */
+/* Led module frame */
 
 int led_init(void)
 {

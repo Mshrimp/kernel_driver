@@ -98,6 +98,10 @@
 			SET_REG_BITS_VAL(GPIO_CTRL_ADDR(grp, bit), ((bit) % 8) * 4, 3, GPIO_OUTPUT)
 #define	SET_GPIO_DIR_INPUT(grp, bit)	\
 			SET_REG_BITS_VAL(GPIO_CTRL_ADDR(grp, bit), ((bit) % 8) * 4, 3, GPIO_INPUT)
+#define	GET_GPIO_DIR_REG(grp, bit)		\
+			GET_REG_BITS_VAL(GPIO_CTRL_ADDR(grp, bit), ((bit) % 8) * 4, 3)
+#define	GET_GPIO_DATA_REG(grp)		\
+			GET_REG_VAL(GPIO_DATA_ADDR(grp))
 
 #define	SET_GPIO_OUTPUT_HIGH(grp, bit)		SET_REG_BIT(GPIO_DATA_ADDR(grp), bit)
 #define	SET_GPIO_OUTPUT_LOW(grp, bit)		CLR_REG_BIT(GPIO_DATA_ADDR(grp), bit)
