@@ -4,7 +4,7 @@
 #include "../chip/chip.h"
 #include "../i2c/i2c_gpio.h"
 #include "oled_gpio.h"
-#include "oled_font.h"
+#include "font.h"
 
 #define	SSD1306_CHIP_ADDR		0x78
 
@@ -34,6 +34,16 @@ static oled_info_t oled_info = {
 			.bit = 6,
 		},
 	},
+};
+
+typedef struct {
+	unsigned char row;
+	unsigned char col;
+} oled_pos_t;
+
+static oled_pos_t oled_pos = {
+	.row = 0,
+	.col = 0,
 };
 
 int oled_write_commond(unsigned char cmd)
@@ -94,7 +104,7 @@ int oled_chip_init(void)
 	return 0;
 }
 
-int oled_show_char(void)
+int oled_show_hello(void)
 {
 	int len = 0;
 	unsigned char cnt, col;
@@ -110,6 +120,68 @@ int oled_show_char(void)
 	for (cnt = 0; cnt < len; cnt++) {
 		for (col = 0; col < 6; col++) {
 			oled_write_data(font[cnt][col]);
+		}
+	}
+
+	return 0;
+}
+
+int oled_show_char_8_16(unsigned char row, unsigned char col, unsigned char ch)
+{
+	int i = 0;
+	if ((row >= OLED_MAX_ROW - 1) || (col >= OLED_MAX_COL - 8)) {
+		oled_error("row col error, row = %d, col = %d", row, col);
+		return -EINVAL;
+	}
+
+	oled_debug("oled_show_char_8_16, char: %c, %d", ch, ch);
+
+	oled_write_commond(0xB0 | row);
+	oled_write_commond(0x00);
+	oled_write_commond(0x10);
+
+	for (i = 0; i < 8; i++) {
+		oled_write_data(font_ascii[ch - ' '][i]);
+	}
+
+	oled_write_commond((0xB0 | row) + 1);
+	oled_write_commond(0x00);
+	oled_write_commond(0x10);
+
+	for (i = 0; i < 8; i++) {
+		oled_write_data(font_ascii[ch - ' '][i]);
+	}
+
+	return 0;
+}
+
+int oled_show_string_8_16(unsigned char row, unsigned char col, unsigned char *str)
+{
+	int i = 0;
+	unsigned char pos_row, pos_col;
+	int ret = -1;
+
+	if ((row >= OLED_MAX_ROW - 1) || (col >= OLED_MAX_COL - 8)) {
+		oled_error("row col error, row = %d, col = %d", row, col);
+		return -EINVAL;
+	}
+
+	pos_row = row;
+	pos_col = col;
+
+	while (*(str + i) != '\0') {
+		if (pos_col + 8 < OLED_MAX_COL) {
+			oled_show_char_8_16(pos_row, pos_col, *(str + i));
+			pos_col += 8;
+			i++;
+		} else {
+			if (pos_col + 2 < OLED_MAX_ROW) {
+				pos_row += 2;
+				pos_col = 0;
+			} else {
+				oled_error("oled write to the end, pos_row = %d, pos_col = %d", pos_row, pos_col);
+				return -EFAULT;
+			}
 		}
 	}
 
@@ -176,7 +248,7 @@ int oled_operation(unsigned int cmd, unsigned long args)
 		ret = oled_fill_screen(0xFF);
 		break;
 	case OLED_IOC_TEST:
-		ret = oled_show_char();
+		ret = oled_show_hello();
 		break;
 	default:
 		oled_error("cmd error no = %d", cmd);
