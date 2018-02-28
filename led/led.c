@@ -1,6 +1,7 @@
 #include <linux/spinlock.h>
 #include <linux/uaccess.h>
 #include <linux/mutex.h>
+#include <linux/delay.h>
 
 #include "led.h"
 #include "../chip/chip.h"
@@ -25,7 +26,7 @@ typedef struct {
 
 static led_info_t led_info = {
 	.gpio = {
-		.group = GPIOA,
+		.group = GPIOG,
 		.bit = 11,
 	},
 	.normal = 0,
@@ -41,12 +42,22 @@ static int led_set_on(void)
 	}
 
 	mutex_lock(&led_info.mutex);
+	led_debug("before: get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
+	set_gpio_output(&led_info.gpio);
+	led_debug("out: get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
+	led_debug("!led_info.normal = %d", !led_info.normal);
 	ret = set_gpio_output_val(&led_info.gpio, !led_info.normal);
 	//ret = set_gpio_output_high(&led_info.gpio);
 	if (ret) {
 		led_error("set on failed, ret = %d", ret);
 		return -1;
 	}
+	led_debug("set on: get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
+	set_gpio_input(&led_info.gpio);
+	led_debug("in get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
+	mdelay(1000);
+	led_debug("in get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
+
 	led_info.status = LED_ON;
 	mutex_unlock(&led_info.mutex);
 
@@ -63,12 +74,20 @@ static int led_set_off(void)
 	}
 
 	mutex_lock(&led_info.mutex);
+	led_debug("before: get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
+	set_gpio_output(&led_info.gpio);
+	led_debug("out: get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
 	ret = set_gpio_output_val(&led_info.gpio, led_info.normal);
 	//ret = set_gpio_output_low(&led_info.gpio);
 	if (ret) {
 		led_error("set off failed, ret = %d", ret);
 		return -1;
 	}
+	led_debug("set off: get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
+	set_gpio_input(&led_info.gpio);
+	led_debug("in get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
+	mdelay(1000);
+	led_debug("in get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
 	led_info.status = LED_OFF;
 	mutex_unlock(&led_info.mutex);
 
@@ -87,6 +106,7 @@ static int led_get_status(unsigned long *status)
 		led_error("get failed, ret = %d", ret);
 		return -EAGAIN;
 	}
+	led_debug("ret = %d", ret);
 	mutex_unlock(&led_info.mutex);
 	*status = led_info.normal ? !ret : ret;
 	led_debug("get status: %s", *status ? "On" : "Off");

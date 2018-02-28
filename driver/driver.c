@@ -39,31 +39,29 @@ static unsigned int drv_poll(struct file *filp, struct poll_table_struct *table)
 	return 0;
 }
 
-/*
- *static int drv_led_work(unsigned int cmd, unsigned long args)
- *{
- *    int ret = -1;
- *    if (_IOC_TYPE(cmd) != LED_IOC_MAGIC) {
- *        DRV_ERROR("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
- *        return -EINVAL;
- *    }
- *    DRV_DEBUG("_IOC_TYPE(cmd) = 0x%X", _IOC_TYPE(cmd));
- *
- *    if (_IOC_NR(cmd) > LED_IOC_MAXNR) {
- *        DRV_ERROR("ioctl cmd nr error, nr = %d", _IOC_NR(cmd));
- *        return -EINVAL;
- *    }
- *    DRV_DEBUG("_IOC_NR(cmd) = %d", _IOC_NR(cmd));
- *
- *    ret = led_operation(cmd, args);
- *    if (ret) {
- *        DRV_ERROR("led operation failed");
- *        return -EFAULT;
- *    }
- *
- *    return ret;
- *}
- */
+static int drv_led_work(unsigned int cmd, unsigned long args)
+{
+	int ret = -1;
+	if (_IOC_TYPE(cmd) != LED_IOC_MAGIC) {
+		DRV_ERROR("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
+		return -EINVAL;
+	}
+	DRV_DEBUG("_IOC_TYPE(cmd) = 0x%X", _IOC_TYPE(cmd));
+
+	if (_IOC_NR(cmd) > LED_IOC_MAXNR) {
+		DRV_ERROR("ioctl cmd nr error, nr = %d", _IOC_NR(cmd));
+		return -EINVAL;
+	}
+	DRV_DEBUG("_IOC_NR(cmd) = %d", _IOC_NR(cmd));
+
+	ret = led_operation(cmd, args);
+	if (ret) {
+		DRV_ERROR("led operation failed");
+		return -EFAULT;
+	}
+
+	return ret;
+}
 
 /*
  *static int drv_fm36_work(unsigned int cmd, unsigned long args)
@@ -139,6 +137,9 @@ static int drv_open(struct inode *inodp, struct file *filp)
 {
 	DRV_DEBUG("driver open");
 
+    /*
+	 *led_init();
+     */
 	oled_init();
 
 /*
@@ -155,6 +156,10 @@ static int drv_open(struct inode *inodp, struct file *filp)
 static int drv_release(struct inode *inodp, struct file *filp)
 {
 	DRV_DEBUG("driver release");
+
+    /*
+	 *led_uninit();
+     */
 
 	oled_uninit();
 	//fm36_uninit();

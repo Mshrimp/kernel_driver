@@ -9,8 +9,8 @@
 
 #define	OLED_CHIP_ADDR			SSD1306_CHIP_ADDR
 
-#define	OLED_MAX_ROW			1
-#define	OLED_MAX_COL			2
+#define	OLED_MAX_ROW			8
+#define	OLED_MAX_COL			128
 
 #define	oled_debug(fmt, args...)		\
 			printk("OLED debug: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
@@ -50,6 +50,40 @@ int oled_write_data(unsigned char data)
 	i2c_write_byte_with_ack(0x40);
 	i2c_write_byte_with_ack(data);
 	i2c_stop();
+
+	return 0;
+}
+
+int oled_chip_init(void)
+{
+	oled_write_commond(0xAE);
+	oled_write_commond(0x20);
+	oled_write_commond(0x10);
+	oled_write_commond(0xB0);
+	oled_write_commond(0xC8);
+	oled_write_commond(0x00);
+	oled_write_commond(0x10);
+	oled_write_commond(0x40);
+	oled_write_commond(0x81);
+	oled_write_commond(0x7F);
+	oled_write_commond(0xA1);
+	oled_write_commond(0xA6);
+	oled_write_commond(0xA8);
+	oled_write_commond(0x3F);
+	oled_write_commond(0xA4);
+	oled_write_commond(0xD3);
+	oled_write_commond(0x00);
+	oled_write_commond(0xD5);
+	oled_write_commond(0xF0);
+	oled_write_commond(0xD9);
+	oled_write_commond(0x22);
+	oled_write_commond(0xDA);
+	oled_write_commond(0x12);
+	oled_write_commond(0xDB);
+	oled_write_commond(0x20);
+	oled_write_commond(0x8D);
+	oled_write_commond(0x14);
+	oled_write_commond(0xAF);
 
 	return 0;
 }
@@ -104,6 +138,9 @@ int oled_operation(unsigned int cmd, unsigned long args)
 	int ret = -1;
 
 	switch (cmd) {
+	case OLED_IOC_INIT:
+		ret = oled_chip_init();
+		break;
 	case OLED_IOC_CLEAR:
 		ret = oled_fill_screen(0x00);
 		break;

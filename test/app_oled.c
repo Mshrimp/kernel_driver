@@ -17,9 +17,10 @@
 void show_cmd(void)
 {
 	printf("*******************************************\n");
-	printf("0: OLED clear\n");
-	printf("1: OLED full\n");
-	printf("2: OLED get status\n");
+	printf("0: OLED init\n");
+	printf("1: OLED clear\n");
+	printf("2: OLED full\n");
+	printf("3: OLED get status\n");
 	printf("9: Quit\n");
 	printf("*******************************************\n");
 }
@@ -48,6 +49,10 @@ int main(int argc,char **args)
 		}
 
 		switch (input) {
+		case OLED_INIT:
+			app_debug("oled init");
+			ret = ioctl(fd, OLED_IOC_INIT);
+			break;
 		case OLED_CLEAR:
 			app_debug("oled clear");
 			ret = ioctl(fd, OLED_IOC_CLEAR);

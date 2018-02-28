@@ -6,13 +6,15 @@
 
 
 typedef enum {
-	OLED_CLEAR = 0x0,
-	OLED_FULL = 0x1,
+	OLED_INIT = 0x0,
+	OLED_CLEAR = 0x1,
+	OLED_FULL = 0x2,
 } oled_cmd_e;
 
 
 #define		OLED_IOC_MAGIC		'o'
-#define		OLED_IOC_MAXNR		2
+#define		OLED_IOC_MAXNR		3
+#define		OLED_IOC_INIT			_IO(OLED_IOC_MAGIC, OLED_INIT)
 #define		OLED_IOC_CLEAR			_IO(OLED_IOC_MAGIC, OLED_CLEAR)
 #define		OLED_IOC_FULL			_IO(OLED_IOC_MAGIC, OLED_FULL)
 

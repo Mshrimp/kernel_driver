@@ -27,12 +27,10 @@
 #define	GET_SCL_VAL			get_gpio_val(&i2c_info.scl)
 #define	GET_SDA_VAL			get_gpio_val(&i2c_info.sda)
 
-
 #define	i2c_debug(fmt, args...)		\
 			printk("i2c debug: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
 #define	i2c_error(fmt, args...)		\
 			printk("i2c error: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
-
 
 typedef struct {
 	gpio_t scl;
@@ -44,12 +42,12 @@ typedef struct {
 
 static i2c_info_t i2c_info = {
 	.scl = {
-		.group = GPIOA,
+		.group = GPIOG,
 		.bit = 11,
 	},
 	.sda = {
 		.group = GPIOA,
-		.bit = 12,
+		.bit = 6,
 	},
 };
 
@@ -137,7 +135,7 @@ int i2c_init(void)
 
 int i2c_start(void)
 {
-	i2c_debug("i2c_start");
+	//i2c_debug("i2c_start");
 
 	mutex_lock(&i2c_info.i2c_mutex);
 	SET_SDA_OUT;
@@ -161,7 +159,7 @@ int i2c_start(void)
 
 int i2c_stop(void)
 {
-	i2c_debug("i2c_stop");
+	//i2c_debug("i2c_stop");
 
 	mutex_lock(&i2c_info.i2c_mutex);
 	SET_SDA_OUT;
@@ -235,31 +233,33 @@ static int i2c_wait_ack(void)
 {
 	int ack_times = 0;
 	int ret = 0;
-	i2c_debug("i2c_wait_ack");
+	//i2c_debug("i2c_wait_ack");
 
 	mutex_lock(&i2c_info.i2c_mutex);
 	SET_SDA_OUT;
 	udelay(I2C_DELAY);
 
-	SET_SCL_LOW;
-	udelay(I2C_DELAY);
-
 	SET_SDA_HIGH;
 	udelay(I2C_DELAY);
-	i2c_debug("GET_SDA_VAL High: %d", GET_SDA_VAL);
+	//i2c_debug("GET_SDA_VAL SDA High: %d", GET_SDA_VAL);
 
 	SET_SDA_IN;
 	udelay(I2C_DELAY);
-	i2c_debug("GET_SDA_VAL: %d", GET_SDA_VAL);
+	//i2c_debug("GET_SDA_VAL in: %d", GET_SDA_VAL);
+
+	SET_SCL_LOW;
+	udelay(I2C_DELAY);
+	//i2c_debug("GET_SDA_VAL scl low: %d", GET_SDA_VAL);
 
 	SET_SCL_HIGH;
 	udelay(I2C_DELAY);
+	//i2c_debug("GET_SDA_VAL scl high: %d", GET_SDA_VAL);
 
 	ack_times = 0;
-	i2c_debug("GET_SDA_VAL: %d", GET_SDA_VAL);
+	//i2c_debug("GET_SDA_VAL: %d", GET_SDA_VAL);
 	while (GET_SDA_VAL) {
-		ack_times++;
 		i2c_debug("i2c_wait_ack, ack_times = %d", ack_times);
+		ack_times++;
 		if (ack_times == 10) {
 			ret = 1;
 			i2c_error("i2c ack error, no ack");
@@ -303,7 +303,7 @@ int i2c_write_byte(u8 data)
 {
 	unsigned long flag = 0;
 	u8 i = 0;
-	i2c_debug("i2c_write_byte: 0x%X", data);
+	//i2c_debug("i2c_write_byte: 0x%X", data);
 
 	local_irq_save(flag);
 	preempt_disable();
@@ -336,7 +336,7 @@ int i2c_write_byte(u8 data)
 
 int i2c_write_byte_with_ack(u8 data)
 {
-	i2c_debug("i2c_write_byte_with_ack: 0x%X", data);
+	//i2c_debug("i2c_write_byte_with_ack: 0x%X", data);
 	i2c_write_byte(data);
 	if (i2c_ack(I2C_WAIT_ACK)) {
 		i2c_error("wait ack failed, no ack");
