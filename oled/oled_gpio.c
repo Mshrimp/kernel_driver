@@ -18,6 +18,7 @@
 #define	oled_error(fmt, args...)		\
 			printk("OLED error: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
 
+
 typedef struct {
 	i2c_gpio_t gpio;
 	spinlock_t lock;
@@ -99,7 +100,42 @@ int oled_show_char(void)
 	int len = 0;
 	unsigned char cnt, col;
 
-	len = sizeof(font) / sizeof(font[1]);
+	len = sizeof(font) / sizeof(font[0]);
+
+	oled_debug("font size: %d", len);
+
+	oled_write_commond(0xB0);
+	oled_write_commond(0x00);
+	oled_write_commond(0x20);
+
+	for (cnt = 0; cnt < len; cnt++) {
+		for (col = 0; col < 6; col++) {
+			oled_write_data(font[cnt][col]);
+		}
+	}
+
+	return 0;
+}
+
+int oled_show_char_position(unsigned char row, unsigned char col)
+{
+	if ((row >= OLED_MAX_ROW) || (col >= OLED_MAX_COL)) {
+		oled_error("position error, row = %d, col = %d", row, col);
+		return -1;
+	}
+	oled_write_commond(0xB0 | row);
+	oled_write_commond(0x00);
+	oled_write_commond(0x10);
+
+	return 0;
+}
+
+int oled_show_char_8_16(void)
+{
+	int len = 0;
+	unsigned char cnt, col;
+
+	len = sizeof(font_8_16) / sizeof(font_8_16[0]);
 
 	oled_debug("font size: %d", len);
 
@@ -108,8 +144,18 @@ int oled_show_char(void)
 	oled_write_commond(0x10);
 
 	for (cnt = 0; cnt < len; cnt++) {
-		for (col = 0; col < 6; col++) {
-			oled_write_data(font[cnt][col]);
+		for (col = 0; col < 8; col++) {
+			oled_write_data(font_8_16[cnt][col]);
+		}
+	}
+
+	oled_write_commond(0xB1);
+	oled_write_commond(0x00);
+	oled_write_commond(0x10);
+
+	for (cnt = 0; cnt < len; cnt++) {
+		for (col = 8; col < 16; col++) {
+			oled_write_data(font_8_16[cnt][col]);
 		}
 	}
 
@@ -176,7 +222,7 @@ int oled_operation(unsigned int cmd, unsigned long args)
 		ret = oled_fill_screen(0xFF);
 		break;
 	case OLED_IOC_TEST:
-		ret = oled_show_char();
+		ret = oled_show_char_8_16();
 		break;
 	default:
 		oled_error("cmd error no = %d", cmd);
