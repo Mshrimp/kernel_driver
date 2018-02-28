@@ -8,8 +8,8 @@
 
 #define	LED_GET_STATUS			2	// Just for module test
 
-#define LED_ON				0
-#define LED_OFF				1
+#define LED_ON					0
+#define LED_OFF					1
 
 #define	led_debug(fmt, args...)			\
 			printk("led debug: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
@@ -42,21 +42,12 @@ static int led_set_on(void)
 	}
 
 	mutex_lock(&led_info.mutex);
-	led_debug("before: get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
-	set_gpio_output(&led_info.gpio);
-	led_debug("out: get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
-	led_debug("!led_info.normal = %d", !led_info.normal);
-	ret = set_gpio_output_val(&led_info.gpio, !led_info.normal);
 	//ret = set_gpio_output_high(&led_info.gpio);
+	ret = set_gpio_output_val(&led_info.gpio, !led_info.normal);
 	if (ret) {
 		led_error("set on failed, ret = %d", ret);
 		return -1;
 	}
-	led_debug("set on: get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
-	set_gpio_input(&led_info.gpio);
-	led_debug("in get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
-	mdelay(1000);
-	led_debug("in get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
 
 	led_info.status = LED_ON;
 	mutex_unlock(&led_info.mutex);
@@ -74,20 +65,13 @@ static int led_set_off(void)
 	}
 
 	mutex_lock(&led_info.mutex);
-	led_debug("before: get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
-	set_gpio_output(&led_info.gpio);
-	led_debug("out: get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
-	ret = set_gpio_output_val(&led_info.gpio, led_info.normal);
 	//ret = set_gpio_output_low(&led_info.gpio);
+	ret = set_gpio_output_val(&led_info.gpio, led_info.normal);
 	if (ret) {
 		led_error("set off failed, ret = %d", ret);
 		return -1;
 	}
-	led_debug("set off: get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
-	set_gpio_input(&led_info.gpio);
-	led_debug("in get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
-	mdelay(1000);
-	led_debug("in get_gpio_val(&led_info.gpio): %d", get_gpio_val(&led_info.gpio));
+
 	led_info.status = LED_OFF;
 	mutex_unlock(&led_info.mutex);
 
@@ -145,10 +129,7 @@ int led_init(void)
 	mutex_init(&led_info.mutex);
 
 	spin_lock(&led_info.lock);
-    /*
-	 *led_info.normal = 0;
-	 *led_info.status = LED_OFF;
-     */
+	led_info.status = LED_OFF;
 	spin_unlock(&led_info.lock);
 
 	ret = led_gpio_init();

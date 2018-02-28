@@ -1,7 +1,7 @@
 #ifndef	__I2C_H__
 #define	__I2C_H__
 
-int i2c_init(void);
+int i2c_init(i2c_gpio_t *gpio);
 
 int i2c_start(void);
 

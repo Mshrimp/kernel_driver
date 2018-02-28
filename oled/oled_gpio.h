@@ -9,6 +9,7 @@ typedef enum {
 	OLED_INIT = 0x0,
 	OLED_CLEAR = 0x1,
 	OLED_FULL = 0x2,
+	OLED_TEST = 0x3,
 } oled_cmd_e;
 
 
@@ -17,6 +18,7 @@ typedef enum {
 #define		OLED_IOC_INIT			_IO(OLED_IOC_MAGIC, OLED_INIT)
 #define		OLED_IOC_CLEAR			_IO(OLED_IOC_MAGIC, OLED_CLEAR)
 #define		OLED_IOC_FULL			_IO(OLED_IOC_MAGIC, OLED_FULL)
+#define		OLED_IOC_TEST			_IO(OLED_IOC_MAGIC, OLED_TEST)
 
 int oled_init(void);
 

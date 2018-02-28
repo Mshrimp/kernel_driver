@@ -15,6 +15,11 @@ typedef struct {
 	unsigned char bit;
 } gpio_t;
 
+typedef struct {
+	gpio_t scl;
+	gpio_t sda;
+} i2c_gpio_t;
+
 int set_gpio_output(gpio_t *gpio);
 
 int set_gpio_input(gpio_t *gpio);

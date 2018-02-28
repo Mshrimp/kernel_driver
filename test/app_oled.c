@@ -20,7 +20,7 @@ void show_cmd(void)
 	printf("0: OLED init\n");
 	printf("1: OLED clear\n");
 	printf("2: OLED full\n");
-	printf("3: OLED get status\n");
+	printf("3: OLED test\n");
 	printf("9: Quit\n");
 	printf("*******************************************\n");
 }
@@ -60,6 +60,10 @@ int main(int argc,char **args)
 		case OLED_FULL:
 			app_debug("oled full");
 			ret = ioctl(fd, OLED_IOC_FULL);
+			break;
+		case OLED_TEST:
+			app_debug("oled test");
+			ret = ioctl(fd, OLED_IOC_TEST);
 			break;
 		default:
 			app_error("wrong cmd");

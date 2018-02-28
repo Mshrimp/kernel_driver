@@ -6,7 +6,7 @@
 #include "../chip/chip.h"
 #include "i2c_gpio.h"
 
-#define	I2C_DELAY			10
+#define	I2C_DELAY			2
 
 #define	GPIO_SCL			0
 #define	GPIO_SDA			1
@@ -14,18 +14,18 @@
 #define	GPIO_HIGH			1
 #define	GPIO_LOW			0
 
-#define	SET_SCL_OUT			set_gpio_output(&i2c_info.scl)
-#define	SET_SDA_OUT			set_gpio_output(&i2c_info.sda)
-#define	SET_SDA_IN			set_gpio_input(&i2c_info.sda)
+#define	SET_SCL_OUT			set_gpio_output(&i2c_info.gpio.scl)
+#define	SET_SDA_OUT			set_gpio_output(&i2c_info.gpio.sda)
+#define	SET_SDA_IN			set_gpio_input(&i2c_info.gpio.sda)
 
-#define	SET_SCL_HIGH		set_gpio_output_val(&i2c_info.scl, GPIO_HIGH)
-#define	SET_SCL_LOW			set_gpio_output_val(&i2c_info.scl, GPIO_LOW)
+#define	SET_SCL_HIGH		set_gpio_output_val(&i2c_info.gpio.scl, GPIO_HIGH)
+#define	SET_SCL_LOW			set_gpio_output_val(&i2c_info.gpio.scl, GPIO_LOW)
 
-#define	SET_SDA_HIGH		set_gpio_output_val(&i2c_info.sda, GPIO_HIGH)
-#define	SET_SDA_LOW			set_gpio_output_val(&i2c_info.sda, GPIO_LOW)
+#define	SET_SDA_HIGH		set_gpio_output_val(&i2c_info.gpio.sda, GPIO_HIGH)
+#define	SET_SDA_LOW			set_gpio_output_val(&i2c_info.gpio.sda, GPIO_LOW)
 
-#define	GET_SCL_VAL			get_gpio_val(&i2c_info.scl)
-#define	GET_SDA_VAL			get_gpio_val(&i2c_info.sda)
+#define	GET_SCL_VAL			get_gpio_val(&i2c_info.gpio.scl)
+#define	GET_SDA_VAL			get_gpio_val(&i2c_info.gpio.sda)
 
 #define	i2c_debug(fmt, args...)		\
 			printk("i2c debug: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
@@ -33,22 +33,25 @@
 			printk("i2c error: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
 
 typedef struct {
-	gpio_t scl;
-	gpio_t sda;
+	i2c_gpio_t gpio;
 	spinlock_t lock;
 	struct mutex i2c_mutex;
 } i2c_info_t;
 
 
 static i2c_info_t i2c_info = {
-	.scl = {
-		.group = GPIOG,
-		.bit = 11,
-	},
-	.sda = {
-		.group = GPIOA,
-		.bit = 6,
-	},
+    /*
+	 *.gpio = {
+	 *    .scl = {
+	 *        .group = GPIOG,
+	 *        .bit = 12,
+	 *    },
+	 *    .sda = {
+	 *        .group = GPIOA,
+	 *        .bit = 7,
+	 *    },
+	 *},
+     */
 };
 
 /*
@@ -93,40 +96,15 @@ static void i2c_gpio_init(void)
 	i2c_scl_init();
 }
 
-int i2c_test_scl_gpio(void)
-{
-	i2c_info.scl.group = 4;
-	i2c_info.scl.bit = 5;
-
-	SET_SCL_OUT;
-	SET_SCL_HIGH;
-	msleep(2000);
-
-	SET_SCL_LOW;
-
-	return 0;
-}
-
-int i2c_test_sda_gpio(void)
-{
-	i2c_info.sda.group = 4;
-	i2c_info.sda.bit = 5;
-
-	SET_SDA_OUT;
-	SET_SDA_HIGH;
-	msleep(2000);
-
-	SET_SDA_LOW;
-
-	return 0;
-}
-
-int i2c_init(void)
+int i2c_init(i2c_gpio_t *gpio)
 {
 	i2c_debug("i2c_init");
 
 	spin_lock_init(&i2c_info.lock);
 	mutex_init(&i2c_info.i2c_mutex);
+
+	i2c_info.gpio.scl = gpio->scl;
+	i2c_info.gpio.sda = gpio->sda;
 
 	i2c_gpio_init();
 
