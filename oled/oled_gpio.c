@@ -197,6 +197,103 @@ int oled_show_string_8_16(unsigned char row, unsigned char col, unsigned char *s
 	return 0;
 }
 
+int oled_horizontal_scroll(oled_scroll_t *oled_scroll_info)
+{
+	oled_debug("oled_horizontal_scroll");
+
+	if ((oled_scroll_info->start_page >= OLED_MAX_ROW)
+			|| (oled_scroll_info->stop_page >= OLED_MAX_ROW)) {
+		oled_error("page error, start_page = %d, stop_page = %d",
+					oled_scroll_info->start_page, oled_scroll_info->stop_page);
+		return -EINVAL;
+	}
+
+	if (oled_scroll_info->speed >= 7) {
+		oled_error("page error, speed = %d", oled_scroll_info->speed);
+		return -EINVAL;
+	}
+
+	oled_debug("direction: %d, page: (%d, %d), speed: %d",
+				oled_scroll_info->direction, oled_scroll_info->start_page,
+				oled_scroll_info->stop_page, oled_scroll_info->speed);
+
+	oled_write_commond(0x2E);
+
+	if (oled_scroll_info->direction > 0) {	// Scroll right
+		oled_write_commond(0x26);
+		oled_write_commond(0x00);
+		oled_write_commond(oled_scroll_info->start_page);
+		oled_write_commond(oled_scroll_info->speed);
+		oled_write_commond(oled_scroll_info->stop_page);
+		oled_write_commond(0x2F);
+	} else {	// Scroll left
+		oled_write_commond(0x27);
+		oled_write_commond(0x00);
+		oled_write_commond(oled_scroll_info->start_page);
+		oled_write_commond(oled_scroll_info->speed);
+		oled_write_commond(oled_scroll_info->stop_page);
+		oled_write_commond(0x2F);
+	}
+
+	return 0;
+}
+
+int oled_vertical_horizontal_scroll(oled_scroll_t *oled_scroll_info)
+{
+	oled_debug("oled_vertical_horizontal_scroll");
+
+	if ((oled_scroll_info->start_page >= OLED_MAX_ROW)
+			|| (oled_scroll_info->stop_page >= OLED_MAX_ROW)) {
+		oled_error("page error, start_page = %d, stop_page = %d",
+					oled_scroll_info->start_page, oled_scroll_info->stop_page);
+		return -EINVAL;
+	}
+
+	if (oled_scroll_info->speed >= 7) {
+		oled_error("page error, speed = %d", oled_scroll_info->speed);
+		return -EINVAL;
+	}
+
+	if (oled_scroll_info->col_step >= OLED_MAX_ROW) {
+		oled_error("page error, col_step = %d", oled_scroll_info->col_step);
+		return -EINVAL;
+	}
+
+	oled_debug("direction: %d, page: (%d, %d), speed: %d, col_step: %d",
+				oled_scroll_info->direction, oled_scroll_info->start_page,
+				oled_scroll_info->stop_page, oled_scroll_info->speed,
+				oled_scroll_info->col_step);
+
+	oled_write_commond(0x2E);
+
+	if (oled_scroll_info->direction > 0) {	// Scroll right
+		oled_write_commond(0x29);
+		oled_write_commond(0x00);
+		oled_write_commond(oled_scroll_info->start_page);
+		oled_write_commond(oled_scroll_info->speed);
+		oled_write_commond(oled_scroll_info->stop_page);
+		oled_write_commond(oled_scroll_info->col_step);
+		oled_write_commond(0x2F);
+	} else {	// Scroll left
+		oled_write_commond(0x2A);
+		oled_write_commond(0x00);
+		oled_write_commond(oled_scroll_info->start_page);
+		oled_write_commond(oled_scroll_info->speed);
+		oled_write_commond(oled_scroll_info->stop_page);
+		oled_write_commond(oled_scroll_info->col_step);
+		oled_write_commond(0x2F);
+	}
+
+	return 0;
+}
+
+int oled_stop_scroll(void)
+{
+	oled_write_commond(0x2E);
+
+	return 0;
+}
+
 int oled_fill_screen(unsigned char data)
 {
 	unsigned char row, col;
@@ -241,6 +338,7 @@ int oled_uninit(void)
 {
 	printk("oled_uninit\n");
 
+	oled_write_commond(0x2E);
 	oled_write_commond(0xAE);
 
 	return 0;
@@ -251,6 +349,7 @@ int oled_operation(unsigned int cmd, unsigned long args)
 	int ret = -1;
 	oled_char_t oled_char;
 	oled_str_t oled_str;
+	oled_scroll_t oled_scroll;
 
 	switch (cmd) {
 	case OLED_IOC_INIT:
@@ -287,6 +386,35 @@ int oled_operation(unsigned int cmd, unsigned long args)
 			oled_error("oled_show_string_8_16 failed");
 			return -EFAULT;
 		}
+		break;
+	case OLED_IOC_SCROLL_H:
+		ret = copy_from_user(&oled_scroll, (u32 __user *)args, sizeof(oled_scroll_t));
+		if (ret) {
+			oled_error("OLED_IOC_SCROLL_H, copy_form_user failed, ret = %d", ret);
+			return -EFAULT;
+		}
+
+		ret = oled_horizontal_scroll(&oled_scroll);
+		if (ret) {
+			oled_error("oled_horizontal_scroll failed");
+			return -EFAULT;
+		}
+		break;
+	case OLED_IOC_SCROLL_V:
+		ret = copy_from_user(&oled_scroll, (u32 __user *)args, sizeof(oled_scroll_t));
+		if (ret) {
+			oled_error("OLED_IOC_SCROLL_V, copy_form_user failed, ret = %d", ret);
+			return -EFAULT;
+		}
+
+		ret = oled_vertical_horizontal_scroll(&oled_scroll);
+		if (ret) {
+			oled_error("oled_vertical_horizontal_scroll failed");
+			return -EFAULT;
+		}
+		break;
+	case OLED_IOC_STOP_SCROLL:
+		ret = oled_stop_scroll();
 		break;
 	case OLED_IOC_TEST:
 		//ret = oled_show_string_8_16(2, 0, "Hello world!");
