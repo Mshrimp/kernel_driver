@@ -137,6 +137,11 @@ int oled_show_char_8_16(unsigned char row, unsigned char col, unsigned char ch)
 		return -EINVAL;
 	}
 
+	if ((ch - ' ' < 0) || (ch > 0x7F)) {
+		oled_error("ch error, ch = %c", ch);
+		return -EINVAL;
+	}
+
 	oled_debug("oled_show_char_8_16, char: %c, %d", ch, ch);
 
 	oled_write_commond(0xB0 | row);
