@@ -80,8 +80,8 @@ int main(int argc,char **args)
 			break;
 		case OLED_CHAR:
 			app_debug("oled show char");
-			printf("Input the position to show in oled:(a, b)\n");
-			scanf("%d, %d", &oled_char.row, &oled_char.col);
+			printf("Input the position to show in oled:(a,b)\n");
+			scanf("%d,%d", &oled_char.row, &oled_char.col);
 			getchar();
 			printf("Input the char to show:\n");
 			scanf("%c", &oled_char.ch);
@@ -91,8 +91,8 @@ int main(int argc,char **args)
 			break;
 		case OLED_STR:
 			app_debug("oled show string");
-			printf("Input the position to show in oled:(a, b)\n");
-			scanf("%d, %d", &oled_str.row, &oled_str.col);
+			printf("Input the position to show in oled:(a,b)\n");
+			scanf("%d,%d", &oled_str.row, &oled_str.col);
 			getchar();
 			printf("Input the string to show:\n");
 			//scanf("%c", &oled_char.ch);
@@ -113,8 +113,8 @@ int main(int argc,char **args)
 			printf("Input the speed to scroll:(0 ~ 7)\n");
 			scanf("%d", &oled_scroll.speed);
 			getchar();
-			printf("Input the page to scroll:(a, b)(0 ~ 7)\n");
-			scanf("%d, %d", &oled_scroll.start_page, &oled_scroll.stop_page);
+			printf("Input the page to scroll:(a,b)(0 ~ 7)\n");
+			scanf("%d,%d", &oled_scroll.start_page, &oled_scroll.stop_page);
 			getchar();
 
 			app_debug("direction: %d, page: (%d, %d), speed: %d",
@@ -123,26 +123,22 @@ int main(int argc,char **args)
 
 			ret = ioctl(fd, OLED_IOC_SCROLL_H, &oled_scroll);
 			break;
-		case OLED_SCROLL_V:
+		case OLED_SCROLL_H_V:
 			app_debug("oled vertical and horizontal scroll");
 			printf("Input the direction to scroll:(0: left, 1: right)\n");
 			scanf("%d", &oled_scroll.direction);
-			getchar();
 			printf("Input the speed to scroll:(0 ~ 7)\n");
 			scanf("%d", &oled_scroll.speed);
-			getchar();
 			printf("Input the col step to scroll:(0 ~ 7)\n");
 			scanf("%d", &oled_scroll.col_step);
-			getchar();
-			printf("Input the page to scroll:(a, b)(0 ~ 7)\n");
-			scanf("%d, %d", &oled_scroll.start_page, &oled_scroll.stop_page);
-			getchar();
+			printf("Input the page to scroll:(a,b)(0 ~ 7)\n");
+			scanf("%d,%d", &oled_scroll.start_page, &oled_scroll.stop_page);
 
-			app_debug("direction: %d, page: (%d, %d), col_step: %d, speed: %d",
+			app_debug("direction: %d, page: (%d, %d), speed: %d, col_step: %d",
 					oled_scroll.direction, oled_scroll.start_page, oled_scroll.stop_page,
-					oled_scroll.col_step, oled_scroll.speed);
+					oled_scroll.speed, oled_scroll.col_step);
 
-			ret = ioctl(fd, OLED_IOC_SCROLL_V, &oled_scroll);
+			ret = ioctl(fd, OLED_IOC_SCROLL_H_V, &oled_scroll);
 			break;
 		case OLED_STOP_SCROLL:
 			app_debug("oled stop scroll");
