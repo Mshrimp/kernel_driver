@@ -12,8 +12,9 @@
 
 #define	OLED_CHIP_ADDR			SSD1306_CHIP_ADDR
 
-#define	OLED_MAX_ROW			8
+#define	OLED_MAX_ROW			64
 #define	OLED_MAX_COL			128
+#define	OLED_MAX_PAGE			(OLED_MAX_ROW / 8)
 
 #define	oled_debug(fmt, args...)		\
 			printk("OLED debug: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
@@ -132,7 +133,7 @@ int oled_show_hello(void)
 int oled_show_char_8_16(unsigned char row, unsigned char col, unsigned char ch)
 {
 	int i = 0;
-	if ((row > OLED_MAX_ROW - 2) || (col > OLED_MAX_COL - 8)) {
+	if ((row > OLED_MAX_PAGE - 2) || (col > OLED_MAX_COL - 8)) {
 		oled_error("row col error, row = %d, col = %d", row, col);
 		return -EINVAL;
 	}
@@ -168,7 +169,7 @@ int oled_show_string_8_16(unsigned char row, unsigned char col, unsigned char *s
 	int i = 0;
 	unsigned char pos_row, pos_col;
 
-	if ((row > OLED_MAX_ROW - 2) || (col > OLED_MAX_COL - 8)) {
+	if ((row > OLED_MAX_PAGE - 2) || (col > OLED_MAX_COL - 8)) {
 		oled_error("row col error, row = %d, col = %d", row, col);
 		return -EINVAL;
 	}
@@ -184,7 +185,7 @@ int oled_show_string_8_16(unsigned char row, unsigned char col, unsigned char *s
 			pos_col += 8;
 			i++;
 		} else {
-			if (pos_row + 2 < OLED_MAX_ROW) {
+			if (pos_row + 2 < OLED_MAX_PAGE) {
 				pos_row += 2;
 				pos_col = 0;
 			} else {
@@ -201,8 +202,8 @@ int oled_horizontal_scroll(oled_scroll_t *oled_scroll_info)
 {
 	oled_debug("oled_horizontal_scroll");
 
-	if ((oled_scroll_info->start_page >= OLED_MAX_ROW)
-			|| (oled_scroll_info->stop_page >= OLED_MAX_ROW)) {
+	if ((oled_scroll_info->start_page >= OLED_MAX_PAGE)
+			|| (oled_scroll_info->stop_page >= OLED_MAX_PAGE)) {
 		oled_error("page error, start_page = %d, stop_page = %d",
 					oled_scroll_info->start_page, oled_scroll_info->stop_page);
 		return -EINVAL;
@@ -239,8 +240,8 @@ int oled_vertical_horizontal_scroll(oled_scroll_t *oled_scroll_info)
 {
 	oled_debug("oled_vertical_horizontal_scroll");
 
-	if ((oled_scroll_info->start_page >= OLED_MAX_ROW)
-			|| (oled_scroll_info->stop_page >= OLED_MAX_ROW)) {
+	if ((oled_scroll_info->start_page >= OLED_MAX_PAGE)
+			|| (oled_scroll_info->stop_page >= OLED_MAX_PAGE)) {
 		oled_error("page error, start_page = %d, stop_page = %d",
 					oled_scroll_info->start_page, oled_scroll_info->stop_page);
 		return -EINVAL;
@@ -251,7 +252,7 @@ int oled_vertical_horizontal_scroll(oled_scroll_t *oled_scroll_info)
 		return -EINVAL;
 	}
 
-	if (oled_scroll_info->col_step >= OLED_MAX_ROW) {
+	if (oled_scroll_info->col_step >= OLED_MAX_PAGE) {
 		oled_error("page error, col_step = %d", oled_scroll_info->col_step);
 		return -EINVAL;
 	}
@@ -289,7 +290,7 @@ int oled_fill_screen(unsigned char data)
 	unsigned char row, col;
 	oled_debug("oled_fill_screen: 0x%X", data);
 
-	for (row = 0; row < OLED_MAX_ROW; row++) {
+	for (row = 0; row < OLED_MAX_PAGE; row++) {
 		oled_write_commond(0xB0 | row);
 		oled_write_commond(0x00);
 		oled_write_commond(0x10);
