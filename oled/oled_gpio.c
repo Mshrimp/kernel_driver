@@ -1,3 +1,4 @@
+#include <linux/uaccess.h>
 #include <linux/spinlock.h>
 
 //#include "../common.h"
@@ -5,6 +6,7 @@
 #include "../i2c/i2c_gpio.h"
 #include "oled_gpio.h"
 #include "font.h"
+#include "font_ascii.h"
 
 #define	SSD1306_CHIP_ADDR		0x78
 
@@ -18,6 +20,11 @@
 #define	oled_error(fmt, args...)		\
 			printk("OLED error: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
 
+
+typedef struct {
+	unsigned char row;
+	unsigned char col;
+} oled_pos_t;
 
 typedef struct {
 	i2c_gpio_t gpio;
@@ -36,11 +43,6 @@ static oled_info_t oled_info = {
 		},
 	},
 };
-
-typedef struct {
-	unsigned char row;
-	unsigned char col;
-} oled_pos_t;
 
 static oled_pos_t oled_pos = {
 	.row = 0,
@@ -130,7 +132,7 @@ int oled_show_hello(void)
 int oled_show_char_8_16(unsigned char row, unsigned char col, unsigned char ch)
 {
 	int i = 0;
-	if ((row >= OLED_MAX_ROW - 2) || (col >= OLED_MAX_COL - 8)) {
+	if ((row > OLED_MAX_ROW - 2) || (col > OLED_MAX_COL - 8)) {
 		oled_error("row col error, row = %d, col = %d", row, col);
 		return -EINVAL;
 	}
@@ -138,16 +140,16 @@ int oled_show_char_8_16(unsigned char row, unsigned char col, unsigned char ch)
 	oled_debug("oled_show_char_8_16, char: %c, %d", ch, ch);
 
 	oled_write_commond(0xB0 | row);
-	oled_write_commond(0x00);
-	oled_write_commond(0x10);
+	oled_write_commond(0x00 | (col & 0x0F));
+	oled_write_commond(0x10 | ((col & 0xF0) >> 4));
 
 	for (i = 0; i < 8; i++) {
 		oled_write_data(font_ascii[ch - ' '][i]);
 	}
 
-	oled_write_commond((0xB0 | row) + 1);
-	oled_write_commond(0x00);
-	oled_write_commond(0x10);
+	oled_write_commond(0xB0 | (row + 1));
+	oled_write_commond(0x00 | (col & 0x0F));
+	oled_write_commond(0x10 | ((col & 0xF0) >> 4));
 
 	for (i = 8; i < 16; i++) {
 		oled_write_data(font_ascii[ch - ' '][i]);
@@ -160,9 +162,8 @@ int oled_show_string_8_16(unsigned char row, unsigned char col, unsigned char *s
 {
 	int i = 0;
 	unsigned char pos_row, pos_col;
-	int ret = -1;
 
-	if ((row >= OLED_MAX_ROW - 2) || (col >= OLED_MAX_COL - 8)) {
+	if ((row > OLED_MAX_ROW - 2) || (col > OLED_MAX_COL - 8)) {
 		oled_error("row col error, row = %d, col = %d", row, col);
 		return -EINVAL;
 	}
@@ -172,13 +173,13 @@ int oled_show_string_8_16(unsigned char row, unsigned char col, unsigned char *s
 	pos_row = row;
 	pos_col = col;
 
-	while (*(str + i) != '\0') {
-		if (pos_col + 8 < OLED_MAX_COL) {
+	while ((*(str + i) != '\0') && (*(str + i) != '\n')) {
+		if (pos_col + 8 - 1 < OLED_MAX_COL) {
 			oled_show_char_8_16(pos_row, pos_col, *(str + i));
 			pos_col += 8;
 			i++;
 		} else {
-			if (pos_col + 2 < OLED_MAX_ROW) {
+			if (pos_row + 2 < OLED_MAX_ROW) {
 				pos_row += 2;
 				pos_col = 0;
 			} else {
@@ -225,6 +226,8 @@ int oled_init(void)
 		return -1;
 	}
 
+	oled_chip_init();
+
 	return 0;
 
 }
@@ -233,12 +236,16 @@ int oled_uninit(void)
 {
 	printk("oled_uninit\n");
 
+	oled_write_commond(0xAE);
+
 	return 0;
 }
 
 int oled_operation(unsigned int cmd, unsigned long args)
 {
 	int ret = -1;
+	oled_char_t oled_char;
+	oled_str_t oled_str;
 
 	switch (cmd) {
 	case OLED_IOC_INIT:
@@ -250,8 +257,35 @@ int oled_operation(unsigned int cmd, unsigned long args)
 	case OLED_IOC_FULL:
 		ret = oled_fill_screen(0xFF);
 		break;
+	case OLED_IOC_CHAR:
+		ret = copy_from_user(&oled_char, (u32 __user *)args, sizeof(oled_char_t));
+		if (ret) {
+			oled_error("OLED_IOC_CHAR, copy_form_user failed, ret = %d", ret);
+			return -EFAULT;
+		}
+
+		ret = oled_show_char_8_16(oled_char.row, oled_char.col, oled_char.ch);
+		if (ret) {
+			oled_error("oled_show_char_8_16 failed");
+			return -EFAULT;
+		}
+		break;
+	case OLED_IOC_STR:
+		ret = copy_from_user(&oled_str, (u32 __user *)args, sizeof(oled_str_t));
+		if (ret) {
+			oled_error("OLED_IOC_STR, copy_form_user failed, ret = %d", ret);
+			return -EFAULT;
+		}
+
+		ret = oled_show_string_8_16(oled_str.row, oled_str.col, oled_str.str);
+		if (ret) {
+			oled_error("oled_show_string_8_16 failed");
+			return -EFAULT;
+		}
+		break;
 	case OLED_IOC_TEST:
-		ret = oled_show_string_8_16(2, 0, "Hello world!");
+		//ret = oled_show_string_8_16(2, 0, "Hello world!");
+		ret = oled_show_char_8_16(2, 0, 'H'); 
 		break;
 	default:
 		oled_error("cmd error no = %d", cmd);
