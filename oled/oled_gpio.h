@@ -19,7 +19,7 @@ typedef enum {
 
 
 #define		OLED_IOC_MAGIC		'o'
-#define		OLED_IOC_MAXNR		9
+#define		OLED_IOC_MAXNR		10
 #define		OLED_IOC_INIT			_IO(OLED_IOC_MAGIC, OLED_INIT)
 #define		OLED_IOC_CLEAR			_IO(OLED_IOC_MAGIC, OLED_CLEAR)
 #define		OLED_IOC_FULL			_IO(OLED_IOC_MAGIC, OLED_FULL)

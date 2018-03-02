@@ -52,7 +52,8 @@ DEVICE_RELYON := driver/driver.o
 DEVICE_RELYON += chip/$(PLATFORM)/gpio.o
 DEVICE_RELYON += led/led.o
 DEVICE_RELYON += i2c/i2c_gpio.o
-DEVICE_RELYON += oled/oled_gpio.o
+#DEVICE_RELYON += oled/oled_gpio.o
+DEVICE_RELYON += mpu6050/mpu6050_gpio.o
 #DEVICE_RELYON += i2c/i2c.o
 #DEVICE_RELYON += fm36/fm36.o
 
@@ -79,6 +80,7 @@ clean:
 	@echo "###############################################"
 	@echo -e "$(COLOR_YELLOW)make clean$(COLOR_NORMAL)"
 	make -C $(KERNEL_DIR) M=`pwd` clean
+	-@cd test && rm build -rf
 
 distclean:
 	@echo "###############################################"
