@@ -6,7 +6,19 @@
 #include "../i2c/i2c_gpio.h"
 #include "mpu6050_gpio.h"
 
-#define	MPU6050_CHIP_ADDR		0xD0
+#define	MPU6050_CHIP_ADDR			0xD0
+
+#define	MPU6050_SAMPLE_RATE_DIV_REG	0x19
+#define	MPU6050_CFG_REG				0x1A
+#define	MPU6050_GYRO_CFG_REG		0x1B
+#define	MPU6050_ACCEL_CFG_REG		0x1C
+#define	MPU6050_FIFO_ENABLE_REG		0x23
+#define	MPU6050_INT_ENABLE_REG		0x38
+
+#define	MPU6050_USER_CTRL_REG		0x6A
+#define	MPU6050_PWR_MGMT1_REG		0x6B
+#define	MPU6050_PWR_MGMT2_REG		0x6C
+#define	MPU6050_WHO_AM_I_REG		0x75
 
 typedef enum {
 	MPU6050_ACCEL_XOUT_H = 0x3B,
@@ -123,6 +135,19 @@ int mpu6050_write_byte(mpu_reg_t *mpu_reg)
 	return 0;
 }
 
+int mpu6050_write_register(unsigned char reg, unsigned char data)
+{
+	mpu_debug("mpu6050_write_byte");
+
+	i2c_start();
+	i2c_write_byte_with_ack(MPU6050_CHIP_ADDR);
+	i2c_write_byte_with_ack(reg);
+	i2c_write_byte_with_ack(data);
+	i2c_stop();
+
+	return 0;
+}
+
 int mpu6050_write_bytes(mpu_regs_t *mpu_regs)
 {
 	int i = 0;
@@ -136,6 +161,23 @@ int mpu6050_write_bytes(mpu_regs_t *mpu_regs)
 		i2c_write_byte_with_ack(mpu_regs->data[i]);
 	}
 	i2c_stop();
+
+	return i;
+}
+
+int mpu6050_write_regs_data(mpu_regs_data_t *mpu_regs_data)
+{
+	int i = 0;
+	int ret = -1;
+	mpu_debug("mpu6050_write_regs_data, len: %d", mpu_regs_data->len);
+
+	for (i = 0; i < mpu_regs_data->len; i++) {
+		ret = mpu6050_write_byte(&mpu_regs_data->reg_data[i]);
+		if (ret) {
+			mpu_error("mpu_6050_write_byte failed, ret = %d", ret);
+			return -EFAULT;
+		}
+	}
 
 	return i;
 }
@@ -157,21 +199,22 @@ int mpu6050_read_byte(mpu_reg_t *mpu_reg)
 	return mpu_reg->data;
 }
 
-int mpu6050_write_regs_data(mpu_regs_data_t *mpu_regs_data)
+int mpu6050_read_register(unsigned char reg)
 {
-	int i = 0;
-	int ret = -1;
-	mpu_debug("mpu6050_write_regs_data, len: %d", mpu_regs_data->len);
+	unsigned char data = 0;
+	mpu_debug("mpu6050_read_byte");
 
-	for (i = 0; i < mpu_regs_data->len; i++) {
-		ret = mpu6050_write_byte(&mpu_regs_data->reg_data[i]);
-		if (ret) {
-			mpu_error("mpu_6050_write_byte failed, ret = %d", ret);
-			return -EFAULT;
-		}
-	}
+	i2c_start();
+	i2c_write_byte_with_ack(MPU6050_CHIP_ADDR);
+	i2c_write_byte_with_ack(reg);
 
-	return i;
+	i2c_start();
+	i2c_write_byte_with_ack(MPU6050_CHIP_ADDR + 1);
+	i2c_read_byte(&data);
+	i2c_ack(I2C_NOACK);
+	i2c_stop();
+
+	return data;
 }
 
 int mpu6050_read_bytes(mpu_regs_t *mpu_regs)
@@ -200,9 +243,94 @@ int mpu6050_read_bytes(mpu_regs_t *mpu_regs)
 	return mpu_regs->len;
 }
 
+void mpu6050_chip_reset(void)
+{
+	mpu6050_write_register(MPU6050_PWR_MGMT1_REG, 0x80);
+}
+
+void mpu6050_chip_wakeup(void)
+{
+	mpu6050_write_register(MPU6050_PWR_MGMT1_REG, 0x00);
+}
+
+void mpu6050_set_lpf(int lpf)
+{
+	unsigned char data = 0;
+
+	if (lpf >= 188) {
+		data = 1;
+	} else if (lpf >= 98) {
+		data = 2;
+	} else if (lpf >= 42) {
+		data = 3;
+	} else if (lpf >= 20) {
+		data = 4;
+	} else if (lpf >= 10) {
+		data = 5;
+	} else if (lpf >= 5) {
+		data = 6;
+	}
+
+	mpu6050_write_register(MPU6050_CFG_REG, data);
+}
+
+// Fs = 1KHz
+// rate: 4 ~ 1000Hz
+void mpu6050_set_sample_rate(int rate)
+{
+	unsigned char data = 0;
+
+	if (rate > 1000) {
+		rate = 1000;
+	}
+
+	if (rate < 4) {
+		rate = 4;
+	}
+
+	data = 1000 / rate - 1;
+
+	mpu6050_write_register(MPU6050_SAMPLE_RATE_DIV_REG, data);
+
+	mpu6050_set_lpf(rate / 2);
+}
+
+int mpu6050_check_chip_addr(void)
+{
+	unsigned char chip_addr = 0;
+
+	chip_addr = mpu6050_read_register(MPU6050_WHO_AM_I_REG);
+	if (chip_addr != (MPU6050_CHIP_ADDR >> 1)) {
+		mpu_error("get chip address error, chip_addr = 0x%X", chip_addr);
+		return -EFAULT;
+	}
+
+	return 0;
+}
+
 int mpu6050_chip_init(void)
 {
+	int ret = -1;
 	mpu_debug("mpu6050_chip_init");
+
+	mpu6050_chip_reset();
+	msleep(100);
+	mpu6050_chip_wakeup();
+
+	mpu6050_write_register(MPU6050_GYRO_CFG_REG, 0x3 << 3);
+	mpu6050_write_register(MPU6050_ACCEL_CFG_REG, 0x3 << 3);
+
+	mpu6050_set_sample_rate(50);
+
+	mpu6050_write_register(MPU6050_INT_ENABLE_REG, 0x00);	// Int disable
+	mpu6050_write_register(MPU6050_USER_CTRL_REG, 0x00);	// I2C slave
+	mpu6050_write_register(MPU6050_FIFO_ENABLE_REG, 0x00);	// FIFO disable
+
+	ret = mpu6050_check_chip_addr();
+	if (ret) {
+		mpu_error("mpu6050_check_chip_addr failed");
+		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -215,7 +343,7 @@ short mpu6050_read_accel_xout(void)
 	xout_h = mpu6050_read_byte(&mpu_accel.xout_h);
 	xout_l = mpu6050_read_byte(&mpu_accel.xout_l);
 
-	xout = (xout_h << 4) | xout_l;
+	xout = (xout_h << 8) | xout_l;
 	mpu_debug("read accel xout: %d", xout);
 
 	return xout;
@@ -229,7 +357,7 @@ short mpu6050_read_accel_yout(void)
 	yout_h = mpu6050_read_byte(&mpu_accel.yout_h);
 	yout_l = mpu6050_read_byte(&mpu_accel.yout_l);
 
-	yout = (yout_h << 4) | yout_l;
+	yout = (yout_h << 8) | yout_l;
 	mpu_debug("read accel yout: %d", yout);
 
 	return yout;
@@ -243,7 +371,7 @@ short mpu6050_read_accel_zout(void)
 	zout_h = mpu6050_read_byte(&mpu_accel.zout_h);
 	zout_l = mpu6050_read_byte(&mpu_accel.zout_l);
 
-	zout = (zout_h << 4) | zout_l;
+	zout = (zout_h << 8) | zout_l;
 	mpu_debug("read accel zout: %d", zout);
 
 	return zout;
@@ -267,7 +395,7 @@ short mpu6050_read_temp(mpu_temp_data_t *mpu_temp_data)
 	temp_h = mpu6050_read_byte(&mpu_temp.temp_h);
 	temp_l = mpu6050_read_byte(&mpu_temp.temp_l);
 
-	temp = (temp_h << 4) | temp_l;
+	temp = (temp_h << 8) | temp_l;
 	mpu_debug("read temp out: %d", temp);
 
 	mpu_temp_data->temp = temp;
@@ -283,7 +411,7 @@ short mpu6050_read_gyro_xout(void)
 	xout_h = mpu6050_read_byte(&mpu_gyro.xout_h);
 	xout_l = mpu6050_read_byte(&mpu_gyro.xout_l);
 
-	xout = (xout_h << 4) | xout_l;
+	xout = (xout_h << 8) | xout_l;
 	mpu_debug("read gyro xout: %d", xout);
 
 	return xout;
@@ -297,7 +425,7 @@ short mpu6050_read_gyro_yout(void)
 	yout_h = mpu6050_read_byte(&mpu_gyro.yout_h);
 	yout_l = mpu6050_read_byte(&mpu_gyro.yout_l);
 
-	yout = (yout_h << 4) | yout_l;
+	yout = (yout_h << 8) | yout_l;
 	mpu_debug("read gyro yout: %d", yout);
 
 	return yout;
@@ -311,7 +439,7 @@ short mpu6050_read_gyro_zout(void)
 	zout_h = mpu6050_read_byte(&mpu_gyro.zout_h);
 	zout_l = mpu6050_read_byte(&mpu_gyro.zout_l);
 
-	zout = (zout_h << 4) | zout_l;
+	zout = (zout_h << 8) | zout_l;
 	mpu_debug("read gyro zout: %d", zout);
 
 	return zout;
