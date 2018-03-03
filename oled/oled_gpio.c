@@ -409,7 +409,7 @@ int oled_operation(unsigned int cmd, unsigned long args)
 		break;
 	case OLED_IOC_TEST:
 		//ret = oled_show_string_8_16(2, 0, "Hello world!");
-		ret = oled_show_char_8_16(2, 0, 'H'); 
+		ret = oled_show_char_8_16(2, 0, 'H');
 		break;
 	default:
 		oled_error("cmd error no = %d", cmd);

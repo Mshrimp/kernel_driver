@@ -6,6 +6,7 @@
 //#include "fm36/fm36_gpio.h"
 #include "../led/led.h"
 #include "../oled/oled_gpio.h"
+#include "../mpu6050/mpu6050_gpio.h"
 
 #define	DRIVER_NAME					"h3"
 
@@ -110,6 +111,30 @@ static int drv_oled_working(unsigned int cmd, unsigned long args)
 	return ret;
 }
 
+static int drv_mpu6050_working(unsigned int cmd, unsigned long args)
+{
+	int ret = -1;
+	if (_IOC_TYPE(cmd) != MPU6050_IOC_MAGIC) {
+		DRV_ERROR("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
+		return -EINVAL;
+	}
+	DRV_DEBUG("_IOC_TYPE(cmd) = 0x%X", _IOC_TYPE(cmd));
+
+	if (_IOC_NR(cmd) > MPU6050_IOC_MAXNR) {
+		DRV_ERROR("ioctl cmd nr error, nr = %d", _IOC_NR(cmd));
+		return -EINVAL;
+	}
+	DRV_DEBUG("_IOC_NR(cmd) = %d", _IOC_NR(cmd));
+
+	ret = mpu6050_operation(_IOC_NR(cmd), args);
+	if (ret) {
+		DRV_ERROR("mpu6050 operation failed");
+		return -EFAULT;
+	}
+
+	return ret;
+}
+
 static long drv_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
 {
 	int ret = -1;
@@ -123,9 +148,17 @@ static long drv_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
 	 *}
      */
 
-	ret = drv_oled_working(cmd, args);
+    /*
+	 *ret = drv_oled_working(cmd, args);
+	 *if (ret) {
+	 *    DRV_ERROR("drv_oled_working failed");
+	 *    return -EFAULT;
+	 *}
+     */
+
+	ret = drv_mpu6050_working(cmd, args);
 	if (ret) {
-		DRV_ERROR("drv_oled_working failed");
+		DRV_ERROR("drv_mpu6050_working failed");
 		return -EFAULT;
 	}
 
@@ -140,7 +173,10 @@ static int drv_open(struct inode *inodp, struct file *filp)
     /*
 	 *led_init();
      */
-	oled_init();
+    /*
+	 *oled_init();
+     */
+	mpu6050_init();
 
 /*
 	fm36_init();
@@ -161,7 +197,10 @@ static int drv_release(struct inode *inodp, struct file *filp)
 	 *led_uninit();
      */
 
-	oled_uninit();
+    /*
+	 *oled_uninit();
+     */
+	mpu6050_uninit();
 	//fm36_uninit();
 
 	return 0;
