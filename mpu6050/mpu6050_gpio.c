@@ -12,6 +12,7 @@
 #define	MPU6050_CFG_REG				0x1A
 #define	MPU6050_GYRO_CFG_REG		0x1B
 #define	MPU6050_ACCEL_CFG_REG		0x1C
+
 #define	MPU6050_FIFO_ENABLE_REG		0x23
 #define	MPU6050_INT_ENABLE_REG		0x38
 
@@ -199,7 +200,7 @@ int mpu6050_read_byte(mpu_reg_t *mpu_reg)
 	return mpu_reg->data;
 }
 
-int mpu6050_read_register(unsigned char reg)
+unsigned char mpu6050_read_register(unsigned char reg)
 {
 	unsigned char data = 0;
 	mpu_debug("mpu6050_read_byte");
@@ -344,7 +345,7 @@ short mpu6050_read_accel_xout(void)
 	xout_l = mpu6050_read_byte(&mpu_accel.xout_l);
 
 	xout = (xout_h << 8) | xout_l;
-	mpu_debug("read accel xout: %d", xout);
+	mpu_debug("read accel xout: 0x%X", xout);
 
 	return xout;
 }
@@ -358,7 +359,7 @@ short mpu6050_read_accel_yout(void)
 	yout_l = mpu6050_read_byte(&mpu_accel.yout_l);
 
 	yout = (yout_h << 8) | yout_l;
-	mpu_debug("read accel yout: %d", yout);
+	mpu_debug("read accel yout: 0x%X", yout);
 
 	return yout;
 }
@@ -372,7 +373,7 @@ short mpu6050_read_accel_zout(void)
 	zout_l = mpu6050_read_byte(&mpu_accel.zout_l);
 
 	zout = (zout_h << 8) | zout_l;
-	mpu_debug("read accel zout: %d", zout);
+	mpu_debug("read accel zout: 0x%X", zout);
 
 	return zout;
 }
@@ -396,7 +397,7 @@ short mpu6050_read_temp(mpu_temp_data_t *mpu_temp_data)
 	temp_l = mpu6050_read_byte(&mpu_temp.temp_l);
 
 	temp = (temp_h << 8) | temp_l;
-	mpu_debug("read temp out: %d", temp);
+	mpu_debug("read temp out: 0x%X", temp);
 
 	mpu_temp_data->temp = temp;
 
@@ -412,7 +413,7 @@ short mpu6050_read_gyro_xout(void)
 	xout_l = mpu6050_read_byte(&mpu_gyro.xout_l);
 
 	xout = (xout_h << 8) | xout_l;
-	mpu_debug("read gyro xout: %d", xout);
+	mpu_debug("read gyro xout: 0x%X", xout);
 
 	return xout;
 }
@@ -426,7 +427,7 @@ short mpu6050_read_gyro_yout(void)
 	yout_l = mpu6050_read_byte(&mpu_gyro.yout_l);
 
 	yout = (yout_h << 8) | yout_l;
-	mpu_debug("read gyro yout: %d", yout);
+	mpu_debug("read gyro yout: 0x%X", yout);
 
 	return yout;
 }
@@ -440,7 +441,7 @@ short mpu6050_read_gyro_zout(void)
 	zout_l = mpu6050_read_byte(&mpu_gyro.zout_l);
 
 	zout = (zout_h << 8) | zout_l;
-	mpu_debug("read gyro zout: %d", zout);
+	mpu_debug("read gyro zout: 0x%X", zout);
 
 	return zout;
 }
