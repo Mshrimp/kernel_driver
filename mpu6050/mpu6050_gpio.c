@@ -222,14 +222,14 @@ int mpu6050_read_bytes(mpu_regs_t *mpu_regs)
 {
 	int i = 0;
 	mpu_debug("mpu6050_read_bytes, len: %d", mpu_regs->len);
-	
+
 	i2c_start();
 	i2c_write_byte_with_ack(MPU6050_CHIP_ADDR);
 	i2c_write_byte_with_ack(mpu_regs->reg);
 
 	i2c_start();
 	i2c_write_byte_with_ack(MPU6050_CHIP_ADDR + 1);
-	
+
 	for (i = 0; i < mpu_regs->len; i++) {
 		i2c_read_byte(&mpu_regs->data[i]);
 		if (i == (mpu_regs->len - 1)) {
@@ -517,7 +517,7 @@ int mpu6050_operation(unsigned int cmd, unsigned long args)
 			mpu_error("MPU_WRITE_REGS, copy_from_user failed, ret = %d", ret);
 			return -EFAULT;
 		}
-		
+
 		if (mpu_regs.len > 0) {
 			mpu_regs.data = vmalloc(mpu_regs.len);
 			if (!mpu_regs.data) {
