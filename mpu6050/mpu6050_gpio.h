@@ -36,9 +36,9 @@ typedef	struct {
 } mpu_reg_t;
 
 typedef struct {
-	unsigned char reg;
 	unsigned char *data;
 	unsigned int len;
+	unsigned char reg;
 } mpu_regs_t;
 
 typedef struct {
