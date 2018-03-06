@@ -457,7 +457,7 @@ short mpu6050_read_accel_xout(void)
 	xout_h = mpu6050_read_byte(&mpu_accel.xout_h);
 	xout_l = mpu6050_read_byte(&mpu_accel.xout_l);
 
-	xout = (xout_h << 8) | xout_l;
+	xout = (short)((xout_h << 8) | xout_l);
 	mpu_debug("read accel xout: 0x%X", xout);
 
 	return xout;
@@ -471,7 +471,7 @@ short mpu6050_read_accel_yout(void)
 	yout_h = mpu6050_read_byte(&mpu_accel.yout_h);
 	yout_l = mpu6050_read_byte(&mpu_accel.yout_l);
 
-	yout = (yout_h << 8) | yout_l;
+	yout = (short)((yout_h << 8) | yout_l);
 	mpu_debug("read accel yout: 0x%X", yout);
 
 	return yout;
@@ -485,7 +485,7 @@ short mpu6050_read_accel_zout(void)
 	zout_h = mpu6050_read_byte(&mpu_accel.zout_h);
 	zout_l = mpu6050_read_byte(&mpu_accel.zout_l);
 
-	zout = (zout_h << 8) | zout_l;
+	zout = (short)((zout_h << 8) | zout_l);
 	mpu_debug("read accel zout: 0x%X", zout);
 
 	return zout;
@@ -513,9 +513,9 @@ int mpu6050_read_accel_serial(mpu_accel_data_t *mpu_accel_data)
 		return -EFAULT;
 	}
 
-	mpu_accel_data->xout = (data[0] << 8) | data[1];
-	mpu_accel_data->yout = (data[2] << 8) | data[3];
-	mpu_accel_data->zout = (data[4] << 8) | data[5];
+	mpu_accel_data->xout = (short)((data[0] << 8) | data[1]);
+	mpu_accel_data->yout = (short)((data[2] << 8) | data[3]);
+	mpu_accel_data->zout = (short)((data[4] << 8) | data[5]);
 
 	return 0;
 }
@@ -539,7 +539,7 @@ short mpu6050_read_temp(mpu_temp_data_t *mpu_temp_data)
 	temp_h = mpu6050_read_byte(&mpu_temp.temp_h);
 	temp_l = mpu6050_read_byte(&mpu_temp.temp_l);
 
-	temp = (temp_h << 8) | temp_l;
+	temp = (short)((temp_h << 8) | temp_l);
 	mpu_debug("read temp out: 0x%X", temp);
 
 	mpu_temp_data->temp = temp;
@@ -570,7 +570,7 @@ short mpu6050_read_temp_serial(mpu_temp_data_t *mpu_temp_data)
 		return -EFAULT;
 	}
 
-	temp = (data[0] << 8) | data[1];
+	temp = (short)((data[0] << 8) | data[1]);
 	mpu_debug("read temp: 0x%X", temp);
 
 	mpu_temp_data->temp = temp;
@@ -586,7 +586,7 @@ short mpu6050_read_gyro_xout(void)
 	xout_h = mpu6050_read_byte(&mpu_gyro.xout_h);
 	xout_l = mpu6050_read_byte(&mpu_gyro.xout_l);
 
-	xout = (xout_h << 8) | xout_l;
+	xout = (short)((xout_h << 8) | xout_l);
 	mpu_debug("read gyro xout: 0x%X", xout);
 
 	return xout;
@@ -600,7 +600,7 @@ short mpu6050_read_gyro_yout(void)
 	yout_h = mpu6050_read_byte(&mpu_gyro.yout_h);
 	yout_l = mpu6050_read_byte(&mpu_gyro.yout_l);
 
-	yout = (yout_h << 8) | yout_l;
+	yout = (short)((yout_h << 8) | yout_l);
 	mpu_debug("read gyro yout: 0x%X", yout);
 
 	return yout;
@@ -614,7 +614,7 @@ short mpu6050_read_gyro_zout(void)
 	zout_h = mpu6050_read_byte(&mpu_gyro.zout_h);
 	zout_l = mpu6050_read_byte(&mpu_gyro.zout_l);
 
-	zout = (zout_h << 8) | zout_l;
+	zout = (short)((zout_h << 8) | zout_l);
 	mpu_debug("read gyro zout: 0x%X", zout);
 
 	return zout;
@@ -652,9 +652,9 @@ int mpu6050_read_gyro_serial(mpu_gyro_data_t *mpu_gyro_data)
 		return -EFAULT;
 	}
 
-	mpu_gyro_data->xout = (data[0] << 8) | data[1];
-	mpu_gyro_data->yout = (data[2] << 8) | data[3];
-	mpu_gyro_data->zout = (data[4] << 8) | data[5];
+	mpu_gyro_data->xout = (short)((data[0] << 8) | data[1]);
+	mpu_gyro_data->yout = (short)((data[2] << 8) | data[3]);
+	mpu_gyro_data->zout = (short)((data[4] << 8) | data[5]);
 
 	return 0;
 }
@@ -691,15 +691,15 @@ int mpu6050_get_result_serial(mpu_result_t *mpu_result)
 		return -EFAULT;
 	}
 
-	mpu_result->accel.xout = (data[0] << 8) | data[1];
-	mpu_result->accel.yout = (data[2] << 8) | data[3];
-	mpu_result->accel.zout = (data[4] << 8) | data[5];
+	mpu_result->accel.xout = (short)((data[0] << 8) | data[1]);
+	mpu_result->accel.yout = (short)((data[2] << 8) | data[3]);
+	mpu_result->accel.zout = (short)((data[4] << 8) | data[5]);
 
-	mpu_result->temp.temp = (data[6] << 8) | data[7];
+	mpu_result->temp.temp = (short)((data[6] << 8) | data[7]);
 
-	mpu_result->gyro.xout = (data[8] << 8) | data[9];
-	mpu_result->gyro.yout = (data[10] << 8) | data[11];
-	mpu_result->gyro.zout = (data[12] << 8) | data[13];
+	mpu_result->gyro.xout = (short)((data[8] << 8) | data[9]);
+	mpu_result->gyro.yout = (short)((data[10] << 8) | data[11]);
+	mpu_result->gyro.zout = (short)((data[12] << 8) | data[13]);
 
 	return 0;
 }
