@@ -28,7 +28,8 @@ void show_cmd(void)
 	printf("7: MPU6050 get gyro out\n");
 	printf("8: MPU6050 get temp out\n");
 	printf("9: MPU6050 get result\n");
-	printf("10: Quit\n");
+	printf("10: MPU6050 set range\n");
+	printf("99: Quit\n");
 	printf("*******************************************\n");
 }
 
@@ -73,6 +74,7 @@ int main(int argc,char **args)
 	mpu_gyro_data_t mpu_gyro;
 	mpu_temp_data_t mpu_temp;
 	mpu_result_t mpu_result;
+	mpu_range_t mpu_range;
 
 	fd = open(DRIVER_NAME, O_RDWR | O_NONBLOCK);
 	if(fd < 0) {
@@ -85,7 +87,7 @@ int main(int argc,char **args)
 		scanf("%d", &input);
 		printf("Input: %d\n", input);
 
-		if (10 == input) {
+		if (99 == input) {
 			break;
 		}
 
@@ -109,6 +111,9 @@ int main(int argc,char **args)
 		case MPU_GET_RESULT:
 			ret = ioctl(fd, MPU6050_IOC_GET_RESULT, &mpu_result);
 			show_result(mpu_result);
+			break;
+		case MPU_SET_RANGE:
+			ret = ioctl(fd, MPU6050_IOC_SET_RANGE, &mpu_range);
 			break;
 		default:
 			app_error("wrong cmd");
