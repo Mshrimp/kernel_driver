@@ -14,6 +14,7 @@ typedef enum {
 	MPU_GET_GYRO = 0x7,
 	MPU_GET_TEMP = 0x8,
 	MPU_GET_RESULT = 0x9,
+	MPU_SET_RANGE = 0xA,
 } mpu_cmd_e;
 
 #define		MPU6050_IOC_MAGIC			'm'
@@ -27,8 +28,7 @@ typedef enum {
 #define		MPU6050_IOC_GET_GYRO		_IO(MPU6050_IOC_MAGIC, MPU_GET_GYRO)
 #define		MPU6050_IOC_GET_TEMP		_IO(MPU6050_IOC_MAGIC, MPU_GET_TEMP)
 #define		MPU6050_IOC_GET_RESULT		_IO(MPU6050_IOC_MAGIC, MPU_GET_RESULT)
-
-
+#define		MPU6050_IOC_SET_RANGE		_IO(MPU6050_IOC_MAGIC, MPU_SET_RANGE)
 
 typedef	struct {
 	unsigned char reg;
@@ -36,9 +36,9 @@ typedef	struct {
 } mpu_reg_t;
 
 typedef struct {
-	unsigned char reg;
 	unsigned char *data;
 	unsigned int len;
+	unsigned char reg;
 } mpu_regs_t;
 
 typedef struct {
@@ -90,6 +90,11 @@ typedef struct {
 	mpu_gyro_data_t gyro;
 	mpu_temp_data_t temp;
 } mpu_result_t;
+
+typedef struct {
+	unsigned char accel;
+	unsigned char gyro;
+} mpu_range_t;
 
 int mpu6050_init(void);
 
