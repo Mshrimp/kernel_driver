@@ -6,8 +6,9 @@
 #include <fcntl.h>
 
 #include "../mpu6050/mpu6050_gpio.h"
+#include "app_mpu6050.h"
 
-#define	DRIVER_NAME			"/dev/h3"
+#define	DRIVER_NAME			"/dev/driver_mpu6050_gpio"
 
 
 #define	app_debug(fmt, args...)		\
@@ -65,11 +66,20 @@ void show_result(mpu_result_t mpu_result)
 	printf("\ttemp: \t%d\n", mpu_result.temp.temp);
 }
 
+float calc_result(short out)
+{
+	float data;
+	
+	float = (float)1 / 2;
+
+	return data;
+}
+
 int main(int argc,char **args)
 {
 	int fd = -1;
 	int ret = -1;
-	int input = 0;
+	int i = 0;
 	unsigned long status;
 	mpu_accel_data_t mpu_accel;
 	mpu_gyro_data_t mpu_gyro;
@@ -83,51 +93,30 @@ int main(int argc,char **args)
 		return -1;
 	}
 
-	while (1) {
-		show_cmd();
-		scanf("%d", &input);
-		printf("Input: %d\n", input);
+	ret = ioctl(fd, MPU6050_IOC_INIT);
+	if (ret) {
+		app_error("ioctl MPU6050_IOC_INIT failed");
+		return -1;
+	}
 
-		if (99 == input) {
-			break;
+	mpu_range.accel = 3;
+	mpu_range.gyro = 3;
+	ret = ioctl(fd, MPU6050_IOC_SET_RANGE, &mpu_range);
+	if (ret) {
+		app_error("ioctl MPU6050_IOC_SET_RANGE failed");
+		return -1;
+	}
+
+	i = 0;
+	while (i < 10) {
+		memset(&mpu_result, 0, sizeof(mpu_result_t));
+		ret = ioctl(fd, MPU6050_IOC_GET_RESULT, &mpu_result);
+		if (ret) {
+			app_error("ioctl MPU6050_IOC_GET_RESULT failed");
+			return -1;
 		}
-
-		switch (input) {
-		case MPU_INIT:
-			app_debug("mpu6050 init");
-			ret = ioctl(fd, MPU6050_IOC_INIT);
-			break;
-		case MPU_GET_ACCEL:
-			ret = ioctl(fd, MPU6050_IOC_GET_ACCEL, &mpu_accel);
-			show_accel(mpu_accel);
-			break;
-		case MPU_GET_GYRO:
-			ret = ioctl(fd, MPU6050_IOC_GET_GYRO, &mpu_gyro);
-			show_gyro(mpu_gyro);
-			break;
-		case MPU_GET_TEMP:
-			ret = ioctl(fd, MPU6050_IOC_GET_TEMP, &mpu_temp);
-			show_temp(mpu_temp);
-			break;
-		case MPU_GET_RESULT:
-			ret = ioctl(fd, MPU6050_IOC_GET_RESULT, &mpu_result);
-			show_result(mpu_result);
-			break;
-		case MPU_SET_RANGE:
-			ret = ioctl(fd, MPU6050_IOC_SET_RANGE, &mpu_range);
-			break;
-		case MPU_GET_RANGE:
-			ret = ioctl(fd, MPU6050_IOC_GET_RANGE, &mpu_range);
-			break;
-		default:
-			app_error("wrong cmd");
-			break;
-		}
-
-		if(ret) {
-			app_error("iotrl error, ret = %d", ret);
-		}
-
+		show_result(mpu_result);
+		i++;
 	}
 
 	close(fd);

@@ -15,6 +15,7 @@ typedef enum {
 	MPU_GET_TEMP = 0x8,
 	MPU_GET_RESULT = 0x9,
 	MPU_SET_RANGE = 0xA,
+	MPU_GET_RANGE = 0xB,
 } mpu_cmd_e;
 
 #define		MPU6050_IOC_MAGIC			'm'
@@ -29,6 +30,7 @@ typedef enum {
 #define		MPU6050_IOC_GET_TEMP		_IO(MPU6050_IOC_MAGIC, MPU_GET_TEMP)
 #define		MPU6050_IOC_GET_RESULT		_IO(MPU6050_IOC_MAGIC, MPU_GET_RESULT)
 #define		MPU6050_IOC_SET_RANGE		_IO(MPU6050_IOC_MAGIC, MPU_SET_RANGE)
+#define		MPU6050_IOC_GET_RANGE		_IO(MPU6050_IOC_MAGIC, MPU_GET_RANGE)
 
 typedef	struct {
 	unsigned char reg;

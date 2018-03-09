@@ -408,6 +408,22 @@ int mpu6050_set_accel_range(unsigned char accel_fs)
 	return 0;
 }
 
+int mpu6050_get_accel_range(unsigned char *accel_fs)
+{
+	unsigned char data = 0;
+	mpu_debug("mpu6050_get_accel_range");
+
+	data = mpu6050_read_register(MPU6050_ACCEL_CFG_REG);
+
+	accel_fs = (data >> 3) & ((0x1 << 3) - 1);
+	if (accel_fs > 3) {
+		mpu_error("get accel_fs error, accel_fs: %d", accel_fs);
+		return -EFAULT;
+	}
+
+	return 0;
+}
+
 int mpu6050_set_gyro_range(unsigned char gyro_fs)
 {
 	unsigned char data = 0;
@@ -426,6 +442,22 @@ int mpu6050_set_gyro_range(unsigned char gyro_fs)
 	}
 
 	mpu6050_write_register(MPU6050_GYRO_CFG_REG, data);
+
+	return 0;
+}
+
+int mpu6050_get_gyro_range(unsigned char *gyro_fs)
+{
+	unsigned char data = 0;
+	mpu_debug("mpu6050_get_gyro_range");
+
+	data = mpu6050_read_register(MPU6050_ACCEL_CFG_REG);
+
+	gyro_fs = (data >> 3) & ((0x1 << 3) - 1);
+	if (gyro_fs > 3) {
+		mpu_error("get gyro_fs error, gyro_fs: %d", gyro_fs);
+		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -450,6 +482,31 @@ int mpu6050_set_accel_and_gyro_range(mpu_range_t mpu_range)
 	if (ret) {
 		mpu_error("mpu6050_set_gyro_range failed, ret = %d", ret);
 		return -EFAULT;
+	}
+
+	return 0;
+}
+
+int mpu6050_get_accel_and_gyro_range(mpu_range_t *mpu_range)
+{
+	int ret = -1;
+	mpu_debug("mpu6050_get_accel_and_gyro_range");
+
+	ret = mpu6050_get_accel_range(&mpu_range->accel);
+	if (ret) {
+		mpu_error("mpu6050_get_accel_range failed, ret = %d", ret);
+		return -EFAULT;
+	}
+
+	ret = mpu6050_get_gyro_range(&mpu_range->gyro);
+	if (ret) {
+		mpu_error("mpu6050_get_gyro_range failed, ret = %d", ret);
+		return -EFAULT;
+	}
+
+	if ((mpu_range->accel > 3) || (mpu_range->gyro > 3)) {
+		mpu_error("error range: %d, %d", mpu_range->accel, mpu_range->gyro);
+		return -EINVAL;
 	}
 
 	return 0;
@@ -899,6 +956,19 @@ int mpu6050_operation(unsigned int cmd, unsigned long args)
 		ret = mpu6050_set_accel_and_gyro_range(mpu_range);
 		if (ret) {
 			mpu_error("mpu6050_set_accel_and_gyro_range failed, ret = %d", ret);
+			return -EFAULT;
+		}
+		break;
+	case MPU_GET_RANGE:
+		ret = mpu6050_get_accel_and_gyro_range(&mpu_range);
+		if (ret) {
+			mpu_error("mpu6050_set_accel_and_gyro_range failed, ret = %d", ret);
+			return -EFAULT;
+		}
+
+		ret = copy_to_user((u32 __user *)args, &mpu_range, sizeof(mpu_range_t));
+		if (ret) {
+			mpu_error("MPU_SET_RANGE, copy_to_user failed, ret = %d", ret);
 			return -EFAULT;
 		}
 		break;
