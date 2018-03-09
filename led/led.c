@@ -1,10 +1,16 @@
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/fs.h>
+#include <linux/device.h>
 #include <linux/spinlock.h>
 #include <linux/uaccess.h>
 #include <linux/mutex.h>
 #include <linux/delay.h>
 
-#include "led.h"
 #include "../chip/chip.h"
+#include "led.h"
+
+#define	DEV_NAME				"driver_led"
 
 #define	LED_GET_STATUS			2	// Just for module test
 
@@ -194,3 +200,120 @@ int led_operation(unsigned int cmd, unsigned long args)
 	return ret;
 }
 
+long driver_led_ioctl (struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	int ret = -1;
+	printk("Driver: led ioctl!\n");
+
+	if (_IOC_TYPE(cmd) != LED_IOC_MAGIC) {
+		led_error("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
+		return -EINVAL;
+	}
+
+	if (_IOC_NR(cmd) > LED_IOC_MAXNR) {
+		led_error("ioctl cmd nr error, nr = %d", _IOC_NR(cmd));
+		return -EINVAL;
+	}
+
+	ret = led_operation(_IOC_NR(cmd), arg);
+	if (ret) {
+		led_error("led_operation failed");
+		return -EFAULT;
+	}
+
+	return ret;
+}
+
+ssize_t driver_led_write (struct file *filp, const char __user *buf, size_t size, loff_t *offset)
+{
+	printk("Driver: led write!\n");
+	return size;
+}
+
+ssize_t driver_led_read (struct file *filp, char __user *buf, size_t size, loff_t *offset)
+{
+	printk("Driver: led read!\n");
+
+	return size;
+}
+
+int driver_led_open (struct inode *inodep, struct file *filp)
+{
+	printk("Driver: led open!\n");
+
+	led_init();
+
+	return 0;
+}
+
+int driver_led_close (struct inode *inodep, struct file *filp)
+{
+	printk("Driver: led close!\n");
+
+	led_uninit();
+
+	return 0;
+}
+
+/////////////////////////////////////////////////////////////模块
+struct file_operations fops = {
+	.owner = THIS_MODULE,
+	.open = driver_led_open,
+	.release = driver_led_close,
+	.read = driver_led_read,
+	.write = driver_led_write,
+	.unlocked_ioctl = driver_led_ioctl,
+};
+
+int major = 0;
+struct class *driver_class;
+struct device *driver_class_device;
+
+static int driver_led_init(void)
+{
+	printk("Hello, driver chrdev register led module init!\n");
+
+	major = register_chrdev(major, DEV_NAME, &fops);
+	if (major < 0) {
+		led_error("register_chrdev failed");
+		goto ERR_dev_register;
+	}
+	printk("major = %d\n", major);
+
+	driver_class = class_create(THIS_MODULE, "driver_class");
+	if (!driver_class) {
+		led_error("class_create failed");
+		goto ERR_class_create;
+	}
+
+	driver_class_device = device_create(driver_class, NULL, MKDEV(major, 0), NULL, "driver_class_device");
+	if (!driver_class_device) {
+		led_error("device_create failed");
+		goto ERR_class_device_create;
+	}
+
+	return 0;
+ERR_class_device_create:
+	device_destroy(driver_class, MKDEV(major, 0));
+ERR_class_create:
+	unregister_chrdev(major, DEV_NAME);
+ERR_dev_register:
+	return -1;
+}
+
+static void driver_led_exit(void)
+{
+	printk("Goodbye, led module exit!\n");
+	class_destroy(driver_class);
+	device_destroy(driver_class, MKDEV(major, 0));
+	unregister_chrdev(major, DEV_NAME);
+}
+
+
+module_init(driver_led_init);
+module_exit(driver_led_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Mshrimp");
+MODULE_DESCRIPTION("LED driver");
+MODULE_VERSION("V0.1");

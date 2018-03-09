@@ -1,10 +1,16 @@
-#include <linux/uaccess.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/fs.h>
+#include <linux/device.h>
 #include <linux/spinlock.h>
+#include <linux/uaccess.h>
 #include <linux/vmalloc.h>
 
 #include "../chip/chip.h"
 #include "../i2c/i2c_gpio.h"
 #include "mpu6050_gpio.h"
+
+#define DEV_NAME		`			"driver_mpu6050_gpio"
 
 #define	MPU6050_CHIP_ADDR			0xD0
 
@@ -909,3 +915,122 @@ int mpu6050_operation(unsigned int cmd, unsigned long args)
 	return ret;
 }
 
+
+
+long driver_mpu6050_ioctl (struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	int ret = -1;
+	printk("Driver: mpu6050 ioctl!\n");
+
+	if (_IOC_TYPE(cmd) != MPU6050_IOC_MAGIC) {
+		mpu_error("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
+		return -EINVAL;
+	}
+
+	if (_IOC_NR(cmd) > MPU6050_IOC_MAXNR) {
+		mpu_error("ioctl cmd nr error, nr = %d", _IOC_NR(cmd));
+		return -EINVAL;
+	}
+
+	ret = mpu6050_operation(_IOC_NR(cmd), arg);
+	if (ret) {
+		mpu_error("mpu6050_operation failed");
+		return -EFAULT;
+	}
+
+	return ret;
+}
+
+ssize_t driver_mpu6050_write (struct file *filp, const char __user *buf, size_t size, loff_t *offset)
+{
+	printk("Driver: mpu6050 write!\n");
+	return size;
+}
+
+ssize_t driver_mpu6050_read (struct file *filp, char __user *buf, size_t size, loff_t *offset)
+{
+	printk("Driver: mpu6050 read!\n");
+
+	return size;
+}
+
+int driver_mpu6050_open (struct inode *inodep, struct file *filp)
+{
+	printk("Driver: mpu6050 open!\n");
+
+	mpu6050_init();
+
+	return 0;
+}
+
+int driver_mpu6050_close (struct inode *inodep, struct file *filp)
+{
+	printk("Driver: mpu6050 close!\n");
+
+	mpu6050_uninit();
+
+	return 0;
+}
+
+/////////////////////////////////////////////////////////////模块
+struct file_operations fops = {
+	.owner = THIS_MODULE,
+	.open = driver_mpu6050_open,
+	.release = driver_mpu6050_close,
+	.read = driver_mpu6050_read,
+	.write = driver_mpu6050_write,
+	.unlocked_ioctl = driver_mpu6050_ioctl,
+};
+
+int major = 0;
+struct class *driver_class;
+struct device *driver_class_device;
+
+static int driver_mpu6050_init(void)
+{
+	printk("Hello, driver chrdev register mpu6050 module init!\n");
+
+	major = register_chrdev(major, DEV_NAME, &fops);
+	if (major < 0) {
+		mpu_error("register_chrdev failed");
+		goto ERR_dev_register;
+	}
+	printk("major = %d\n", major);
+
+	driver_class = class_create(THIS_MODULE, "driver_class");
+	if (!driver_class) {
+		mpu_error("class_create failed");
+		goto ERR_class_create;
+	}
+
+	driver_class_device = device_create(driver_class, NULL, MKDEV(major, 0), NULL, "driver_class_device");
+	if (!driver_class_device) {
+		mpu_error("device_create failed");
+		goto ERR_class_device_create;
+	}
+
+	return 0;
+ERR_class_device_create:
+	device_destroy(driver_class, MKDEV(major, 0));
+ERR_class_create:
+	unregister_chrdev(major, DEV_NAME);
+ERR_dev_register:
+	return -1;
+}
+
+static void driver_mpu6050_exit(void)
+{
+	printk("Goodbye, mpu6050 module exit!\n");
+	class_destroy(driver_class);
+	device_destroy(driver_class, MKDEV(major, 0));
+	unregister_chrdev(major, DEV_NAME);
+}
+
+
+module_init(driver_mpu6050_init);
+module_exit(driver_mpu6050_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Mshrimp");
+MODULE_DESCRIPTION("MPU6050 driver");
+MODULE_VERSION("V0.1");

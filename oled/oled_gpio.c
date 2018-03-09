@@ -1,12 +1,17 @@
-#include <linux/uaccess.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/fs.h>
+#include <linux/device.h>
 #include <linux/spinlock.h>
+#include <linux/uaccess.h>
 
-//#include "../common.h"
 #include "../chip/chip.h"
 #include "../i2c/i2c_gpio.h"
 #include "oled_gpio.h"
 #include "font.h"
 #include "font_ascii.h"
+
+#define DEV_NAME				"driver_oled_gpio"
 
 #define	SSD1306_CHIP_ADDR		0x78
 
@@ -424,3 +429,120 @@ int oled_operation(unsigned int cmd, unsigned long args)
 	return ret;
 }
 
+long driver_oled_ioctl (struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	int ret = -1;
+	printk("Driver: oled ioctl!\n");
+
+	if (_IOC_TYPE(cmd) != OLED_IOC_MAGIC) {
+		oled_error("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
+		return -EINVAL;
+	}
+
+	if (_IOC_NR(cmd) > OLED_IOC_MAXNR) {
+		oled_error("ioctl cmd nr error, nr = %d", _IOC_NR(cmd));
+		return -EINVAL;
+	}
+
+	ret = oled_operation(_IOC_NR(cmd), arg);
+	if (ret) {
+		oled_error("oled_operation failed");
+		return -EFAULT;
+	}
+
+	return ret;
+}
+
+ssize_t driver_oled_write (struct file *filp, const char __user *buf, size_t size, loff_t *offset)
+{
+	printk("Driver: oled write!\n");
+	return size;
+}
+
+ssize_t driver_oled_read (struct file *filp, char __user *buf, size_t size, loff_t *offset)
+{
+	printk("Driver: oled read!\n");
+
+	return size;
+}
+
+int driver_oled_open (struct inode *inodep, struct file *filp)
+{
+	printk("Driver: oled open!\n");
+
+	oled_init();
+
+	return 0;
+}
+
+int driver_oled_close (struct inode *inodep, struct file *filp)
+{
+	printk("Driver: oled close!\n");
+
+	oled_uninit();
+
+	return 0;
+}
+
+/////////////////////////////////////////////////////////////模块
+struct file_operations fops = {
+	.owner = THIS_MODULE,
+	.open = driver_oled_open,
+	.release = driver_oled_close,
+	.read = driver_oled_read,
+	.write = driver_oled_write,
+	.unlocked_ioctl = driver_oled_ioctl,
+};
+
+int major = 0;
+struct class *driver_class;
+struct device *driver_class_device;
+
+static int driver_oled_init(void)
+{
+	printk("Hello, driver chrdev register oled module init!\n");
+
+	major = register_chrdev(major, DEV_NAME, &fops);
+	if (major < 0) {
+		oled_error("register_chrdev failed");
+		goto ERR_dev_register;
+	}
+	printk("major = %d\n", major);
+
+	driver_class = class_create(THIS_MODULE, "driver_class");
+	if (!driver_class) {
+		oled_error("class_create failed");
+		goto ERR_class_create;
+	}
+
+	driver_class_device = device_create(driver_class, NULL, MKDEV(major, 0), NULL, "driver_class_device");
+	if (!driver_class_device) {
+		oled_error("device_create failed");
+		goto ERR_class_device_create;
+	}
+
+	return 0;
+ERR_class_device_create:
+	device_destroy(driver_class, MKDEV(major, 0));
+ERR_class_create:
+	unregister_chrdev(major, DEV_NAME);
+ERR_dev_register:
+	return -1;
+}
+
+static void driver_oled_exit(void)
+{
+	printk("Goodbye, oled module exit!\n");
+	class_destroy(driver_class);
+	device_destroy(driver_class, MKDEV(major, 0));
+	unregister_chrdev(major, DEV_NAME);
+}
+
+
+module_init(driver_oled_init);
+module_exit(driver_oled_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Mshrimp");
+MODULE_DESCRIPTION("OLED driver");
+MODULE_VERSION("V0.1");
