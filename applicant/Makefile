@@ -14,22 +14,22 @@ export NV_CROSS_COMPILE?=arm-cortexa9-linux-gnueabihf
 TARGET_DIR=/mnt
 endif
 
-BIN_SOURCE:=$(wildcard ./test_*.c)
-BIN_TARGET:=$(patsubst ./test_%.c, ./build/test_%, $(BIN_SOURCE))
+BIN_SOURCE:=$(wildcard ./app_*.c)
+BIN_TARGET:=$(patsubst ./app_%.c, ./build/app_%, $(BIN_SOURCE))
 
 export ARCH = arm
 export CC = $(NV_CROSS_COMPILE)-gcc
 
 all:notice $(BIN_TARGET)
 
-./build/test_%:./test_%.c
+./build/app_%:./app_%.c
 	@mkdir -p build
 	$(CC) -o $@ $<
 	@chmod a+x $@
 
 notice:
 	@echo ""
-	@echo "***************** make test ****************"
+	@echo "***************** make app ****************"
 	@echo "make chip=xxx"
 	@echo "xxx = hi3518ev200 or allwinner-h3"
 	@echo "make clean"
@@ -42,4 +42,4 @@ clean:
 	@echo clear done
 
 install:
-	-sudo cp build/test_* $(TARGET_DIR) -rf
+	-sudo cp build/app_* $(TARGET_DIR) -rf

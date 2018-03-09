@@ -84,31 +84,41 @@ all: notice
 	@echo "###############################################"
 	@echo -e "$(COLOR_YELLOW)make modules$(COLOR_NORMAL)"
 	make -C $(KERNEL_DIR) M=`pwd` modules
+	-@mkdir -p build
+	-find ./ -name "*.ko" | xargs -n1 -I {} sudo cp {} build -rf
 
 clean:
 	@echo "###############################################"
 	@echo -e "$(COLOR_YELLOW)make clean$(COLOR_NORMAL)"
-	make -C $(KERNEL_DIR) M=`pwd` clean
-	-@cd test && rm build -rf
+	-make -C $(KERNEL_DIR) M=`pwd` clean
+	-rm build -rf
+	-make -C test clean
+	-make -C applicant clean
 
 distclean:
 	@echo "###############################################"
 	@echo -e "$(COLOR_YELLOW)make clean$(COLOR_NORMAL)"
-	make -C $(KERNEL_DIR) M=`pwd` clean
-	cd test && make clean
-
+	-make -C $(KERNEL_DIR) M=`pwd` clean
+	-cd test && make clean && cd ..
+	-cd applicant && make clean && cd ..
 
 app:
 	@echo "###############################################"
 	@echo -e "$(COLOR_YELLOW)make app$(COLOR_NORMAL)"
-	cd app && make
-	cd test && make
+	-make -C applicant
+
+demo:
+	@echo "###############################################"
+	@echo -e "$(COLOR_YELLOW)make test$(COLOR_NORMAL)"
+	-make -C test
 
 install:
 	@echo "###############################################"
 	@echo -e "$(COLOR_YELLOW)make install$(COLOR_NORMAL)"
-	-sudo cp *.ko $(TARGET_DIR) -rf
-	cd test && make install
+	@#-find ./ -name "*.ko" | xargs -n1 -I {} chmod a+x {}
+	-find ./ -name "*.ko" | xargs -n1 -I {} sudo cp {} $(TARGET_DIR) -rf
+	-make -C test install
+	-make -C applicant install
 
 notice:
 	@echo "###############################################"

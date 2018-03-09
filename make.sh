@@ -7,5 +7,5 @@ else
 	CHIP=$1
 fi
 
-make clean && make chip=$CHIP && make app chip=$CHIP && make install chip=$CHIP && make clean
+make clean && make chip=$CHIP && make demo chip=$CHIP && make app chip=$CHIP && make install chip=$CHIP && make clean
 
