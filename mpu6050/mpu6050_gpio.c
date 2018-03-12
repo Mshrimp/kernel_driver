@@ -1096,7 +1096,6 @@ static void driver_mpu6050_exit(void)
 	unregister_chrdev(major, DEV_NAME);
 }
 
-
 module_init(driver_mpu6050_init);
 module_exit(driver_mpu6050_exit);
 
