@@ -4,12 +4,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #include "../mpu6050/mpu6050_gpio.h"
 #include "app_mpu6050.h"
 
-#define	DRIVER_NAME			"/dev/driver_mpu6050_gpio"
+#define	DRIVER_NAME			"/dev/driver_mpu6050"
 
+#define	DATA_FILE			"mpu6050_data"
+#define	BUF_SIZE			128
 
 #define	app_debug(fmt, args...)		\
 			printf("App mpu6050 debug: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
@@ -68,16 +71,16 @@ void show_result(mpu_result_t mpu_result)
 
 float calc_result(short out)
 {
-	float data;
+	float data = 0;
 	
-	float = (float)1 / 2;
-
 	return data;
 }
 
 int main(int argc,char **args)
 {
 	int fd = -1;
+	int file_fd = -1;
+	FILE *fp = NULL;
 	int ret = -1;
 	int i = 0;
 	unsigned long status;
@@ -86,24 +89,41 @@ int main(int argc,char **args)
 	mpu_temp_data_t mpu_temp;
 	mpu_result_t mpu_result;
 	mpu_range_t mpu_range;
+	char buffer[BUF_SIZE] = {0};
 
 	fd = open(DRIVER_NAME, O_RDWR | O_NONBLOCK);
 	if(fd < 0) {
-		app_debug("open %s error, fd = %d", DRIVER_NAME, fd);
+		app_error("open %s error, fd = %d", DRIVER_NAME, fd);
 		return -1;
 	}
 
-	ret = ioctl(fd, MPU6050_IOC_INIT);
-	if (ret) {
-		app_error("ioctl MPU6050_IOC_INIT failed");
-		return -1;
-	}
+    /*
+	 *ret = ioctl(fd, MPU6050_IOC_INIT);
+	 *if (ret) {
+	 *    app_error("ioctl MPU6050_IOC_INIT failed");
+	 *    return -1;
+	 *}
+     */
 
 	mpu_range.accel = 3;
 	mpu_range.gyro = 3;
 	ret = ioctl(fd, MPU6050_IOC_SET_RANGE, &mpu_range);
 	if (ret) {
 		app_error("ioctl MPU6050_IOC_SET_RANGE failed");
+		return -1;
+	}
+
+    /*
+	 *file_fd = open(DATA_FILE, O_RDWR | O_CREAT);
+	 *if (file_fd < 0) {
+	 *    app_error("open %s failed", DATA_FILE);
+	 *    return -1;
+	 *}
+     */
+
+	fp = fopen(DATA_FILE, "w+");
+	if (fp == NULL) {
+		app_error("fopen %s failed", DATA_FILE);
 		return -1;
 	}
 
@@ -115,9 +135,32 @@ int main(int argc,char **args)
 			app_error("ioctl MPU6050_IOC_GET_RESULT failed");
 			return -1;
 		}
+		snprintf(buffer, BUF_SIZE, "%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
+				i, mpu_result.accel.xout, mpu_result.accel.yout, mpu_result.accel.zout,
+				mpu_result.gyro.xout, mpu_result.gyro.yout, mpu_result.gyro.zout);
+
+        /*
+		 *ret = write(file_fd, buffer, BUF_SIZE);
+		 *if (ret < 0)
+		 *{
+		 *    app_error("write data to file failed, ret = %d", ret);
+		 *    return -1;
+		 *}
+         */
+
+		ret = fwrite(buffer, BUF_SIZE, 1, fp);
+		if (ret < 0)
+		{
+			app_error("write data to file failed, ret = %d", ret);
+			return -1;
+		}
+
 		show_result(mpu_result);
 		i++;
+		usleep(1000);
 	}
+
+	fclose(fp);
 
 	close(fd);
 

@@ -65,10 +65,13 @@ oled/oled_gpio-objs := $(OLED_DEVICE_RELYON)
 
 MPU_DEVICE_RELYON := chip/$(PLATFORM)/gpio.o
 MPU_DEVICE_RELYON += i2c/i2c_gpio.o
+MPU_DEVICE_RELYON += mpu6050/mpu6050_gpio.o
 
-obj-m += mpu6050/mpu6050_gpio.o
-mpu6050/mpu6050_gpio-objs := $(MPU_DEVICE_RELYON)
+obj-m += mpu6050.o
+mpu6050-objs := $(MPU_DEVICE_RELYON)
 
+#obj-m += mpu6050/mpu6050_gpio.o
+#mpu6050/mpu6050_gpio-objs := $(MPU_DEVICE_RELYON)
 #########################################################
 
 #COLOR_NORMAL = \e[0m
@@ -85,7 +88,7 @@ all: notice
 	@echo -e "$(COLOR_YELLOW)make modules$(COLOR_NORMAL)"
 	make -C $(KERNEL_DIR) M=`pwd` modules
 	-@mkdir -p build
-	-find ./ -name "*.ko" | xargs -n1 -I {} sudo cp {} build -rf
+	-@find ./ -name "*.ko" | xargs -n1 -I {} cp {} build -rf
 
 clean:
 	@echo "###############################################"

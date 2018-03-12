@@ -286,7 +286,7 @@ static int driver_led_init(void)
 		goto ERR_class_create;
 	}
 
-	driver_class_device = device_create(driver_class, NULL, MKDEV(major, 0), NULL, "driver_class_device");
+	driver_class_device = device_create(driver_class, NULL, MKDEV(major, 0), NULL, "driver_led");
 	if (!driver_class_device) {
 		led_error("device_create failed");
 		goto ERR_class_device_create;

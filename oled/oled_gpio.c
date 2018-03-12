@@ -515,7 +515,7 @@ static int driver_oled_init(void)
 		goto ERR_class_create;
 	}
 
-	driver_class_device = device_create(driver_class, NULL, MKDEV(major, 0), NULL, "driver_class_device");
+	driver_class_device = device_create(driver_class, NULL, MKDEV(major, 0), NULL, "driver_oled");
 	if (!driver_class_device) {
 		oled_error("device_create failed");
 		goto ERR_class_device_create;

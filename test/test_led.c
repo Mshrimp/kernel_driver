@@ -6,7 +6,7 @@
 
 #include "../led/led.h"
 
-#define	DRIVER_NAME			"/dev/h3"
+#define	DRIVER_NAME			"/dev/driver_led"
 
 
 #define	app_debug(fmt, args...)		\

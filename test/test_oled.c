@@ -8,7 +8,7 @@
 
 #include "../oled/oled_gpio.h"
 
-#define	DRIVER_NAME			"/dev/h3"
+#define	DRIVER_NAME			"/dev/driver_oled"
 
 
 #define	app_debug(fmt, args...)		\

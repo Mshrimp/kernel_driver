@@ -10,7 +10,7 @@
 #include "../i2c/i2c_gpio.h"
 #include "mpu6050_gpio.h"
 
-#define DEV_NAME		`			"driver_mpu6050_gpio"
+#define DEV_NAME					"mpu6050_gpio"
 
 #define	MPU6050_CHIP_ADDR			0xD0
 
@@ -158,7 +158,7 @@ int mpu6050_write_byte(mpu_reg_t *mpu_reg)
 
 int mpu6050_write_register(unsigned char reg, unsigned char data)
 {
-	mpu_debug("mpu6050_write_byte");
+	mpu_debug("mpu6050_write_register, reg: 0x%X, data: 0x%X", reg, data);
 
 	i2c_start();
 	i2c_write_byte_with_ack(MPU6050_CHIP_ADDR);
@@ -415,9 +415,9 @@ int mpu6050_get_accel_range(unsigned char *accel_fs)
 
 	data = mpu6050_read_register(MPU6050_ACCEL_CFG_REG);
 
-	accel_fs = (data >> 3) & ((0x1 << 3) - 1);
-	if (accel_fs > 3) {
-		mpu_error("get accel_fs error, accel_fs: %d", accel_fs);
+	*accel_fs = (data >> 3) & ((0x1 << 3) - 1);
+	if (*accel_fs > 3) {
+		mpu_error("get accel_fs error, accel_fs: %d", *accel_fs);
 		return -EFAULT;
 	}
 
@@ -453,9 +453,9 @@ int mpu6050_get_gyro_range(unsigned char *gyro_fs)
 
 	data = mpu6050_read_register(MPU6050_ACCEL_CFG_REG);
 
-	gyro_fs = (data >> 3) & ((0x1 << 3) - 1);
-	if (gyro_fs > 3) {
-		mpu_error("get gyro_fs error, gyro_fs: %d", gyro_fs);
+	*gyro_fs = (data >> 3) & ((0x1 << 3) - 1);
+	if (*gyro_fs > 3) {
+		mpu_error("get gyro_fs error, gyro_fs: %d", *gyro_fs);
 		return -EFAULT;
 	}
 
@@ -571,7 +571,7 @@ int mpu6050_read_accel_serial(mpu_accel_data_t *mpu_accel_data)
 	mpu_regs.data = data;
 
 	ret = mpu6050_read_registers_serial(&mpu_regs);
-	if (ret) {
+	if (ret < 0) {
 		mpu_error("mpu6050_read_registers_serial failed, ret = %d", ret);
 		return -EFAULT;
 	}
@@ -628,7 +628,7 @@ short mpu6050_read_temp_serial(mpu_temp_data_t *mpu_temp_data)
 	mpu_regs.data = data;
 
 	ret = mpu6050_read_registers_serial(&mpu_regs);
-	if (ret) {
+	if (ret < 0) {
 		mpu_error("mpu6050_read_registers_serial failed, ret = %d", ret);
 		return -EFAULT;
 	}
@@ -710,7 +710,7 @@ int mpu6050_read_gyro_serial(mpu_gyro_data_t *mpu_gyro_data)
 	mpu_regs.data = data;
 
 	ret = mpu6050_read_registers_serial(&mpu_regs);
-	if (ret) {
+	if (ret < 0) {
 		mpu_error("mpu6050_read_registers_serial failed, ret = %d", ret);
 		return -EFAULT;
 	}
@@ -737,21 +737,26 @@ int mpu6050_get_result_serial(mpu_result_t *mpu_result)
 	unsigned char data[14] = {0};
 	mpu_regs_t mpu_regs;
 	int ret = -1;
-	mpu_debug("mpu6050_read_gyro_serial");
+	int i = 0;
+	mpu_debug("mpu6050_get_result_serial");
 
 	if (!mpu_result) {
 		mpu_error("param error");
 		return -EINVAL;
 	}
 
-	mpu_regs.reg = MPU6050_GYRO_XOUT_H;
+	mpu_regs.reg = MPU6050_ACCEL_XOUT_H;
 	mpu_regs.len = 14;
 	mpu_regs.data = data;
 
 	ret = mpu6050_read_registers_serial(&mpu_regs);
-	if (ret) {
-		mpu_error("mpu6050_get_result_serial failed, ret = %d", ret);
+	if (ret < 0) {
+		mpu_error("mpu6050_read_registers_serial failed, ret = %d", ret);
 		return -EFAULT;
+	}
+
+	for (i = 0; i < mpu_regs.len; i++) {
+		mpu_debug("reg[%d]: 0x%d, data: %d", i, mpu_regs.reg + i, data[i]);
 	}
 
 	mpu_result->accel.xout = (short)((data[0] << 8) | data[1]);
@@ -985,8 +990,6 @@ int mpu6050_operation(unsigned int cmd, unsigned long args)
 	return ret;
 }
 
-
-
 long driver_mpu6050_ioctl (struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	int ret = -1;
@@ -1073,7 +1076,7 @@ static int driver_mpu6050_init(void)
 		goto ERR_class_create;
 	}
 
-	driver_class_device = device_create(driver_class, NULL, MKDEV(major, 0), NULL, "driver_class_device");
+	driver_class_device = device_create(driver_class, NULL, MKDEV(major, 0), NULL, "driver_mpu6050");
 	if (!driver_class_device) {
 		mpu_error("device_create failed");
 		goto ERR_class_device_create;
