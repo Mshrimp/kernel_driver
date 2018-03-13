@@ -19,6 +19,13 @@
 #define	app_error(fmt, args...)		\
 			printf("App mpu6050 error: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
 
+#define	PI						3.1415926
+
+#define	MPU6050_GYRO_RANGE		2000
+#define	MPU6050_ACCEL_RANGE		(16 * 9.8)
+#define	MPU6050_GROUND			9.8
+
+
 void show_cmd(void)
 {
 	printf("*******************************************\n");
@@ -69,10 +76,22 @@ void show_result(mpu_result_t mpu_result)
 	printf("\ttemp: \t%d\n", mpu_result.temp.temp);
 }
 
-float calc_result(short out)
+double rad_2_ang(double data)
+{
+	double ang = 0;
+
+	ang = (rad / PI) * 180;
+
+	return rad;
+}
+
+double calc_result(short out)
 {
 	float data = 0;
+	double rad;
 	
+	rad = (double)(out) / (0x7FFF);
+
 	return data;
 }
 
