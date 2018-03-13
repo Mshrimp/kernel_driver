@@ -50,10 +50,12 @@ static oled_info_t oled_info = {
 	},
 };
 
-static oled_pos_t oled_pos = {
-	.row = 0,
-	.col = 0,
-};
+/*
+ *static oled_pos_t oled_pos = {
+ *    .row = 0,
+ *    .col = 0,
+ *};
+ */
 
 int oled_write_commond(unsigned char cmd)
 {

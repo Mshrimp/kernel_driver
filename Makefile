@@ -49,17 +49,19 @@ CC = $(CROSS_COMPLITE)gcc
 #########################################################
 
 LED_DEVICE_RELYON := chip/$(PLATFORM)/gpio.o
+LED_DEVICE_RELYON += led/led.o
 
-obj-m += led/led_gpio.o
-led/led_gpio-objs := $(LED_DEVICE_RELYON)
+obj-m += led_gpio.o
+led_gpio-objs := $(LED_DEVICE_RELYON)
 
 #########################################################
 
 OLED_DEVICE_RELYON := chip/$(PLATFORM)/gpio.o
 OLED_DEVICE_RELYON += i2c/i2c_gpio.o
+OLED_DEVICE_RELYON += oled/oled_gpio.o
 
-obj-m += oled/oled_gpio.o
-oled/oled_gpio-objs := $(OLED_DEVICE_RELYON)
+obj-m += oled.o
+oled-objs := $(OLED_DEVICE_RELYON)
 
 #########################################################
 

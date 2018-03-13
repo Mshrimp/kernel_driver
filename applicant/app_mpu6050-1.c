@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <math.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -15,7 +14,7 @@
 #define	DATA_FILE			"mpu6050_data"
 #define	BUF_SIZE			128
 
-#define	DATA_CNT			100
+#define	DATA_CNT			1000
 
 #define	app_debug(fmt, args...)		\
 			printf("App mpu6050 debug: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
@@ -28,22 +27,6 @@
 #define	MPU6050_ACCEL_RANGE		(16 * 9.8)
 #define	MPU6050_GROUND			9.8
 
-
-
-typedef struct {
-	float angle_x;
-	float angle_y;
-	float k;
-	float dt;
-} mpu_filter_info_t;
-
-
-static mpu_filter_info_t mpu_filter_info = {
-	.angle_x = 0.0,
-	.angle_y = 0.0,
-	.k = 0.1,
-	.dt = 0.001,
-};
 
 void show_cmd(void)
 {
@@ -95,98 +78,24 @@ void show_result(mpu_result_t mpu_result)
 	printf("\ttemp: \t%d\n", mpu_result.temp.temp);
 }
 
-//********************************************************************
-// Data transfer, and First Order Complementary Filtering
-
-float data_2_rad(short accel_x_y, short accel_z)
+double rad_2_angle(double rad)
 {
-	float angle_rad = 0.0;
-	float tmp = 0.0;
-
-	tmp = (float)accel_x_y / (float)accel_z;
-	angle_rad = atan(tmp);
-	app_debug("tmp: %f, x_y_out: %d, zout: %d, angle: %f", tmp, accel_x_y, accel_z, angle_rad);
-
-	return angle_rad;
-}
-
-float rad_2_angle(float rad)
-{
-	float angle = 0;
+	double angle = 0;
 
 	angle = (rad / PI) * 180;
 
 	return angle;
 }
 
-float exchange_gyro_result(short out)
+double calc_result(short out)
 {
 	float data = 0;
-	float rad;
+	double rad;
+	
+	rad = (double)(out) / (0x7FFF);
 
-	data = (float)(out) / (0x7FFF);
-	rad = data * MPU6050_GYRO_RANGE;
-
-	app_debug("out: %d, data: %f, rad: %f", out, data, rad);
-
-	return rad;
+	return data;
 }
-
-float first_order_complementary_filtering(float k, float angle_last, float accel_angle, short gyro)
-{
-	float angle = 0;
-	float dt = 0;
-	float gyro_rad = 0;
-	float gyro_angle = 0;
-
-	dt = mpu_filter_info.dt;
-
-	if ((k > 1.0) || (k < 0.0)) {
-		app_error("k error, k = %f", k);
-		return -1;
-	}
-
-	gyro_rad = exchange_gyro_result(gyro);
-	app_debug("gyro: %d, gyro_rad: %f", gyro, gyro_rad);
-	gyro_rad *= dt;
-	gyro_angle = rad_2_angle(gyro_rad);
-
-	angle = k * accel_angle + (1 - k) * (angle_last + gyro_angle);
-
-	app_debug("gyro_rad: %f, gyro_angle: %f, angle: %f", gyro_rad, gyro_angle, angle);
-
-	return angle;
-}
-
-float calc_result(mpu_result_t *result)
-{
-	float rad_x = 0.0;
-	float rad_y = 0.0;
-	float angle_x = 0.0;
-	float angle_y = 0.0;
-	float angle_filter_x = 0.0;
-	float angle_filter_y = 0.0;
-
-	rad_x = data_2_rad(result->accel.xout, result->accel.zout);
-	angle_x = rad_2_angle(rad_x);
-	angle_filter_x = first_order_complementary_filtering(mpu_filter_info.k,
-			mpu_filter_info.angle_x, angle_x, result->gyro.xout);
-	mpu_filter_info.angle_x = angle_filter_x;
-	app_debug("rad_x: %f, angle_x: %f, angle_filter_x: %f", rad_x, angle_x, angle_filter_x);
-
-	rad_y = data_2_rad(result->accel.yout, result->accel.zout);
-	angle_y = rad_2_angle(rad_y);
-	angle_filter_y = first_order_complementary_filtering(mpu_filter_info.k,
-			mpu_filter_info.angle_y, angle_y, result->gyro.xout);
-	mpu_filter_info.angle_y = angle_filter_y;
-
-	app_debug("rad_y: %f, angle_y: %f, angle_filter_y: %f", rad_y, angle_y, angle_filter_y);
-
-
-	return 0.0;
-}
-
-//********************************************************************
 
 int main(int argc,char **args)
 {
@@ -202,11 +111,6 @@ int main(int argc,char **args)
 	mpu_result_t mpu_result;
 	mpu_range_t mpu_range;
 	char buffer[BUF_SIZE] = {0};
-	float angle_x_filter = 0.0;
-	float angle_y_filter = 0.0;
-	float angle_x = 0.0;
-	float angle_y = 0.0;
-	float angle_rad = 0.0;
 
 	fd = open(DRIVER_NAME, O_RDWR | O_NONBLOCK);
 	if(fd < 0) {
@@ -274,31 +178,16 @@ int main(int argc,char **args)
 		 *}
          */
 
-        /*
-		 *ret = fprintf(fp, buffer);
-		 *if (ret < 0)
-		 *{
-		 *    app_error("write data to file failed, ret = %d", ret);
-		 *    return -1;
-		 *}
-         */
+		ret = fprintf(fp, buffer);
+		if (ret < 0)
+		{
+			app_error("write data to file failed, ret = %d", ret);
+			return -1;
+		}
 
-		show_result(mpu_result);
-
-		calc_result(&mpu_result);
-        /*
-		 *angle_rad = data_2_rad(mpu_result.accel.xout, mpu_result.accel.zout);
-		 *angle_x = rad_2_angle(angle_rad);
-		 *angle_x_filter = first_order_complementary_filtering(mpu_filter_info.k_x, mpu_filter_info.angle_x, angle_rad, mpu_result.gyro.xout);
-		 *app_debug("angle_rad: %f, angle_x: %f, angle_x_filter: %f", angle_rad, angle_x, angle_x_filter);
-		 *angle_rad = data_2_rad(mpu_result.accel.yout, mpu_result.accel.zout);
-		 *angle_y = rad_2_angle(angle_rad);
-		 *angle_y_filter = first_order_complementary_filtering(mpu_filter_info.k_y, mpu_filter_info.angle_y, angle_rad, mpu_result.gyro.yout);
-		 *app_debug("angle_rad: %f, angle_y: %f, angle_y_filter: %f", angle_rad, angle_y, angle_y_filter);
-         */
-
+		//show_result(mpu_result);
 		i++;
-		//usleep(1000);
+		usleep(1000);
 	}
 
 	fclose(fp);

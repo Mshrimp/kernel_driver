@@ -24,7 +24,7 @@ all:notice $(BIN_TARGET)
 
 ./build/app_%:./app_%.c
 	@mkdir -p build
-	$(CC) -o $@ $<
+	$(CC) -o $@ $< -lm
 	@chmod a+x $@
 
 notice:

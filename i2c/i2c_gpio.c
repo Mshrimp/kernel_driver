@@ -161,7 +161,7 @@ int i2c_stop(void)
 
 static int i2c_send_ack(void)
 {
-	i2c_debug("i2c_send_ack");
+	//i2c_debug("i2c_send_ack");
 
 	mutex_lock(&i2c_info.i2c_mutex);
 	SET_SDA_OUT;
@@ -185,7 +185,7 @@ static int i2c_send_ack(void)
 
 static int i2c_send_noack(void)
 {
-	i2c_debug("i2c_send_noack");
+	//i2c_debug("i2c_send_noack");
 
 	mutex_lock(&i2c_info.i2c_mutex);
 	SET_SDA_OUT;

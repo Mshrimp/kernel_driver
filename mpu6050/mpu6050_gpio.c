@@ -145,7 +145,7 @@ static mpu_gyro_t mpu_gyro = {
 
 int mpu6050_write_byte(mpu_reg_t *mpu_reg)
 {
-	mpu_debug("mpu6050_write_byte");
+	//mpu_debug("mpu6050_write_byte");
 
 	i2c_start();
 	i2c_write_byte_with_ack(MPU6050_CHIP_ADDR);
@@ -158,7 +158,7 @@ int mpu6050_write_byte(mpu_reg_t *mpu_reg)
 
 int mpu6050_write_register(unsigned char reg, unsigned char data)
 {
-	mpu_debug("mpu6050_write_register, reg: 0x%X, data: 0x%X", reg, data);
+	//mpu_debug("mpu6050_write_register, reg: 0x%X, data: 0x%X", reg, data);
 
 	i2c_start();
 	i2c_write_byte_with_ack(MPU6050_CHIP_ADDR);
@@ -172,7 +172,7 @@ int mpu6050_write_register(unsigned char reg, unsigned char data)
 int mpu6050_write_bytes(mpu_regs_t *mpu_regs)
 {
 	int i = 0;
-	mpu_debug("mpu6050_write_bytes, len: %d", mpu_regs->len);
+	//mpu_debug("mpu6050_write_bytes, len: %d", mpu_regs->len);
 
 	i2c_start();
 	i2c_write_byte_with_ack(MPU6050_CHIP_ADDR);
@@ -190,7 +190,7 @@ int mpu6050_write_regs_data(mpu_regs_data_t *mpu_regs_data)
 {
 	int i = 0;
 	int ret = -1;
-	mpu_debug("mpu6050_write_regs_data, len: %d", mpu_regs_data->len);
+	//mpu_debug("mpu6050_write_regs_data, len: %d", mpu_regs_data->len);
 
 	for (i = 0; i < mpu_regs_data->len; i++) {
 		ret = mpu6050_write_byte(&mpu_regs_data->reg_data[i]);
@@ -205,7 +205,7 @@ int mpu6050_write_regs_data(mpu_regs_data_t *mpu_regs_data)
 
 int mpu6050_read_byte(mpu_reg_t *mpu_reg)
 {
-	mpu_debug("mpu6050_read_byte");
+	//mpu_debug("mpu6050_read_byte");
 
 	i2c_start();
 	i2c_write_byte_with_ack(MPU6050_CHIP_ADDR);
@@ -223,7 +223,7 @@ int mpu6050_read_byte(mpu_reg_t *mpu_reg)
 unsigned char mpu6050_read_register(unsigned char reg)
 {
 	unsigned char data = 0;
-	mpu_debug("mpu6050_read_byte");
+	//mpu_debug("mpu6050_read_byte");
 
 	i2c_start();
 	i2c_write_byte_with_ack(MPU6050_CHIP_ADDR);
@@ -241,7 +241,7 @@ unsigned char mpu6050_read_register(unsigned char reg)
 int mpu6050_read_registers_serial(mpu_regs_t *mpu_regs)
 {
 	int i = 0;
-	mpu_debug("mpu6050_read_register_serial");
+	//mpu_debug("mpu6050_read_register_serial");
 
 	if ((!mpu_regs) || (!mpu_regs->len) || (!mpu_regs->data)) {
 		mpu_error("mpu6050 registers param error");
@@ -271,7 +271,7 @@ int mpu6050_read_registers_serial(mpu_regs_t *mpu_regs)
 int mpu6050_read_bytes(mpu_regs_t *mpu_regs)
 {
 	int i = 0;
-	mpu_debug("mpu6050_read_bytes, len: %d", mpu_regs->len);
+	//mpu_debug("mpu6050_read_bytes, len: %d", mpu_regs->len);
 
 	i2c_start();
 	i2c_write_byte_with_ack(MPU6050_CHIP_ADDR);
@@ -516,7 +516,7 @@ short mpu6050_read_accel_xout(void)
 {
 	char xout_h, xout_l;
 	short xout;
-	mpu_debug("mpu6050_read_accel_xout");
+	//mpu_debug("mpu6050_read_accel_xout");
 	xout_h = mpu6050_read_byte(&mpu_accel.xout_h);
 	xout_l = mpu6050_read_byte(&mpu_accel.xout_l);
 
@@ -530,7 +530,7 @@ short mpu6050_read_accel_yout(void)
 {
 	char yout_h, yout_l;
 	short yout;
-	mpu_debug("mpu6050_read_accel_yout");
+	//mpu_debug("mpu6050_read_accel_yout");
 	yout_h = mpu6050_read_byte(&mpu_accel.yout_h);
 	yout_l = mpu6050_read_byte(&mpu_accel.yout_l);
 
@@ -544,7 +544,7 @@ short mpu6050_read_accel_zout(void)
 {
 	char zout_h, zout_l;
 	short zout;
-	mpu_debug("mpu6050_read_accel_zout");
+	//mpu_debug("mpu6050_read_accel_zout");
 	zout_h = mpu6050_read_byte(&mpu_accel.zout_h);
 	zout_l = mpu6050_read_byte(&mpu_accel.zout_l);
 
@@ -559,7 +559,7 @@ int mpu6050_read_accel_serial(mpu_accel_data_t *mpu_accel_data)
 	unsigned char data[6] = {0};
 	mpu_regs_t mpu_regs;
 	int ret = -1;
-	mpu_debug("mpu6050_read_accel_serial");
+	//mpu_debug("mpu6050_read_accel_serial");
 
 	if (!mpu_accel_data) {
 		mpu_error("param error");
@@ -585,7 +585,7 @@ int mpu6050_read_accel_serial(mpu_accel_data_t *mpu_accel_data)
 
 int mpu6050_read_accel(mpu_accel_data_t *mpu_accel_data)
 {
-	mpu_debug("mpu6050_read_accel");
+	//mpu_debug("mpu6050_read_accel");
 
 	mpu_accel_data->xout = mpu6050_read_accel_xout();
 	mpu_accel_data->yout = mpu6050_read_accel_yout();
@@ -598,7 +598,7 @@ short mpu6050_read_temp(mpu_temp_data_t *mpu_temp_data)
 {
 	char temp_h, temp_l;
 	short temp;
-	mpu_debug("mpu6050_read_temp_out");
+	//mpu_debug("mpu6050_read_temp_out");
 	temp_h = mpu6050_read_byte(&mpu_temp.temp_h);
 	temp_l = mpu6050_read_byte(&mpu_temp.temp_l);
 
@@ -616,7 +616,7 @@ short mpu6050_read_temp_serial(mpu_temp_data_t *mpu_temp_data)
 	mpu_regs_t mpu_regs;
 	short temp;
 	int ret = -1;
-	mpu_debug("mpu6050_read_temp_serial");
+	//mpu_debug("mpu6050_read_temp_serial");
 
 	if (!mpu_temp_data) {
 		mpu_error("param error");
@@ -645,7 +645,7 @@ short mpu6050_read_gyro_xout(void)
 {
 	char xout_h, xout_l;
 	short xout;
-	mpu_debug("mpu6050_read_gyro_xout");
+	//mpu_debug("mpu6050_read_gyro_xout");
 	xout_h = mpu6050_read_byte(&mpu_gyro.xout_h);
 	xout_l = mpu6050_read_byte(&mpu_gyro.xout_l);
 
@@ -659,7 +659,7 @@ short mpu6050_read_gyro_yout(void)
 {
 	char yout_h, yout_l;
 	short yout;
-	mpu_debug("mpu6050_read_gyro_yout");
+	//mpu_debug("mpu6050_read_gyro_yout");
 	yout_h = mpu6050_read_byte(&mpu_gyro.yout_h);
 	yout_l = mpu6050_read_byte(&mpu_gyro.yout_l);
 
@@ -673,7 +673,7 @@ short mpu6050_read_gyro_zout(void)
 {
 	char zout_h, zout_l;
 	short zout;
-	mpu_debug("mpu6050_read_gyro_zout");
+	//mpu_debug("mpu6050_read_gyro_zout");
 	zout_h = mpu6050_read_byte(&mpu_gyro.zout_h);
 	zout_l = mpu6050_read_byte(&mpu_gyro.zout_l);
 
@@ -685,7 +685,7 @@ short mpu6050_read_gyro_zout(void)
 
 int mpu6050_read_gyro(mpu_gyro_data_t *mpu_gyro_data)
 {
-	mpu_debug("mpu6050_read_gyro");
+	//mpu_debug("mpu6050_read_gyro");
 	mpu_gyro_data->xout = mpu6050_read_gyro_xout();
 	mpu_gyro_data->yout = mpu6050_read_gyro_yout();
 	mpu_gyro_data->zout = mpu6050_read_gyro_zout();
@@ -698,7 +698,7 @@ int mpu6050_read_gyro_serial(mpu_gyro_data_t *mpu_gyro_data)
 	unsigned char data[6] = {0};
 	mpu_regs_t mpu_regs;
 	int ret = -1;
-	mpu_debug("mpu6050_read_gyro_serial");
+	//mpu_debug("mpu6050_read_gyro_serial");
 
 	if (!mpu_gyro_data) {
 		mpu_error("param error");
@@ -724,7 +724,7 @@ int mpu6050_read_gyro_serial(mpu_gyro_data_t *mpu_gyro_data)
 
 int mpu6050_get_result(mpu_result_t *mpu_result)
 {
-	mpu_debug("mpu6050_get_result");
+	//mpu_debug("mpu6050_get_result");
 	mpu6050_read_accel(&mpu_result->accel);
 	mpu6050_read_gyro(&mpu_result->gyro);
 	mpu6050_read_temp(&mpu_result->temp);
@@ -738,7 +738,7 @@ int mpu6050_get_result_serial(mpu_result_t *mpu_result)
 	mpu_regs_t mpu_regs;
 	int ret = -1;
 	int i = 0;
-	mpu_debug("mpu6050_get_result_serial");
+	//mpu_debug("mpu6050_get_result_serial");
 
 	if (!mpu_result) {
 		mpu_error("param error");
@@ -755,9 +755,11 @@ int mpu6050_get_result_serial(mpu_result_t *mpu_result)
 		return -EFAULT;
 	}
 
-	for (i = 0; i < mpu_regs.len; i++) {
-		mpu_debug("reg[%d]: 0x%d, data: %d", i, mpu_regs.reg + i, data[i]);
-	}
+    /*
+	 *for (i = 0; i < mpu_regs.len; i++) {
+	 *    mpu_debug("reg[%d]: 0x%X, data: %d", i, mpu_regs.reg + i, data[i]);
+	 *}
+     */
 
 	mpu_result->accel.xout = (short)((data[0] << 8) | data[1]);
 	mpu_result->accel.yout = (short)((data[2] << 8) | data[3]);
@@ -993,7 +995,7 @@ int mpu6050_operation(unsigned int cmd, unsigned long args)
 long driver_mpu6050_ioctl (struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	int ret = -1;
-	printk("Driver: mpu6050 ioctl!\n");
+	//printk("Driver: mpu6050 ioctl!\n");
 
 	if (_IOC_TYPE(cmd) != MPU6050_IOC_MAGIC) {
 		mpu_error("ioctl cmd type error, type = %d", _IOC_TYPE(cmd));
