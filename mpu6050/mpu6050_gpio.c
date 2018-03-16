@@ -389,7 +389,7 @@ int mpu6050_chip_init(void)
 int mpu6050_set_accel_range(unsigned char accel_fs)
 {
 	unsigned char data = 0;
-	mpu_debug("mpu6050_set_accel_range");
+	//mpu_debug("mpu6050_set_accel_range");
 
 	switch (accel_fs) {
 	case 0:
@@ -411,7 +411,7 @@ int mpu6050_set_accel_range(unsigned char accel_fs)
 int mpu6050_get_accel_range(unsigned char *accel_fs)
 {
 	unsigned char data = 0;
-	mpu_debug("mpu6050_get_accel_range");
+	//mpu_debug("mpu6050_get_accel_range");
 
 	data = mpu6050_read_register(MPU6050_ACCEL_CFG_REG);
 
@@ -427,7 +427,7 @@ int mpu6050_get_accel_range(unsigned char *accel_fs)
 int mpu6050_set_gyro_range(unsigned char gyro_fs)
 {
 	unsigned char data = 0;
-	mpu_debug("mpu6050_set_gyro_range");
+	//mpu_debug("mpu6050_set_gyro_range");
 
 	switch (gyro_fs) {
 	case 0:
@@ -449,7 +449,7 @@ int mpu6050_set_gyro_range(unsigned char gyro_fs)
 int mpu6050_get_gyro_range(unsigned char *gyro_fs)
 {
 	unsigned char data = 0;
-	mpu_debug("mpu6050_get_gyro_range");
+	//mpu_debug("mpu6050_get_gyro_range");
 
 	data = mpu6050_read_register(MPU6050_ACCEL_CFG_REG);
 
@@ -465,7 +465,7 @@ int mpu6050_get_gyro_range(unsigned char *gyro_fs)
 int mpu6050_set_accel_and_gyro_range(mpu_range_t mpu_range)
 {
 	int ret = -1;
-	mpu_debug("mpu6050_set_accel_and_gyro_range: %d, %d", mpu_range.accel, mpu_range.gyro);
+	//mpu_debug("mpu6050_set_accel_and_gyro_range: %d, %d", mpu_range.accel, mpu_range.gyro);
 
 	if ((mpu_range.accel > 3) || (mpu_range.gyro > 3)) {
 		mpu_error("error range: %d, %d", mpu_range.accel, mpu_range.gyro);
@@ -490,7 +490,7 @@ int mpu6050_set_accel_and_gyro_range(mpu_range_t mpu_range)
 int mpu6050_get_accel_and_gyro_range(mpu_range_t *mpu_range)
 {
 	int ret = -1;
-	mpu_debug("mpu6050_get_accel_and_gyro_range");
+	//mpu_debug("mpu6050_get_accel_and_gyro_range");
 
 	ret = mpu6050_get_accel_range(&mpu_range->accel);
 	if (ret) {

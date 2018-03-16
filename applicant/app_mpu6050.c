@@ -15,7 +15,7 @@
 #define	DATA_FILE			"mpu6050_data"
 #define	BUF_SIZE			128
 
-#define	DATA_CNT			100
+#define	DATA_CNT			200
 
 #define	app_debug(fmt, args...)		\
 			printf("App mpu6050 debug: "fmt"(func: %s, line: %d)\n", ##args, __func__, __LINE__);
@@ -42,7 +42,7 @@ static mpu_filter_info_t mpu_filter_info = {
 	.angle_x = 0.0,
 	.angle_y = 0.0,
 	.k = 0.1,
-	.dt = 0.001,
+	.dt = 0.01,
 };
 
 void show_cmd(void)
@@ -103,10 +103,11 @@ float data_2_rad(short accel_x_y, short accel_z)
 	float angle_rad = 0.0;
 	float tmp = 0.0;
 
-	tmp = (float)accel_x_y / (float)accel_z;
-	angle_rad = atan(tmp);
-	app_debug("tmp: %f, x_y_out: %d, zout: %d, angle: %f", tmp, accel_x_y, accel_z, angle_rad);
-
+	if (accel_z != 0) {
+		tmp = (float)accel_x_y / (float)accel_z;
+		angle_rad = atan(tmp);
+		//app_debug("tmp: %f, x_y_out: %d, zout: %d, angle: %f", tmp, accel_x_y, accel_z, angle_rad);
+	}
 	return angle_rad;
 }
 
@@ -127,7 +128,7 @@ float exchange_gyro_result(short out)
 	data = (float)(out) / (0x7FFF);
 	rad = data * MPU6050_GYRO_RANGE;
 
-	app_debug("out: %d, data: %f, rad: %f", out, data, rad);
+	//app_debug("out: %d, data: %f, rad: %f", out, data, rad);
 
 	return rad;
 }
@@ -147,13 +148,13 @@ float first_order_complementary_filtering(float k, float angle_last, float accel
 	}
 
 	gyro_rad = exchange_gyro_result(gyro);
-	app_debug("gyro: %d, gyro_rad: %f", gyro, gyro_rad);
+	//app_debug("gyro: %d, gyro_rad: %f", gyro, gyro_rad);
 	gyro_rad *= dt;
 	gyro_angle = rad_2_angle(gyro_rad);
 
-	angle = k * accel_angle + (1 - k) * (angle_last + gyro_angle);
+	angle = k * accel_angle + (1.0 - k) * (angle_last + gyro_angle);
 
-	app_debug("gyro_rad: %f, gyro_angle: %f, angle: %f", gyro_rad, gyro_angle, angle);
+	//app_debug("gyro_rad: %f, gyro_angle: %f, angle: %f", gyro_rad, gyro_angle, angle);
 
 	return angle;
 }
@@ -172,7 +173,7 @@ float calc_result(FILE *fp, char *buffer, mpu_result_t *result)
 	angle_filter_x = first_order_complementary_filtering(mpu_filter_info.k,
 			mpu_filter_info.angle_x, angle_x, result->gyro.xout);
 	mpu_filter_info.angle_x = angle_filter_x;
-	app_debug("rad_x: %f, angle_x: %f, angle_filter_x: %f", rad_x, angle_x, angle_filter_x);
+	//app_debug("rad_x: %f, angle_x: %f, angle_filter_x: %f", rad_x, angle_x, angle_filter_x);
 
 	rad_y = data_2_rad(result->accel.yout, result->accel.zout);
 	angle_y = rad_2_angle(rad_y);
@@ -180,7 +181,7 @@ float calc_result(FILE *fp, char *buffer, mpu_result_t *result)
 			mpu_filter_info.angle_y, angle_y, result->gyro.xout);
 	mpu_filter_info.angle_y = angle_filter_y;
 
-	app_debug("rad_y: %f, angle_y: %f, angle_filter_y: %f", rad_y, angle_y, angle_filter_y);
+	//app_debug("rad_y: %f, angle_y: %f, angle_filter_y: %f", rad_y, angle_y, angle_filter_y);
 
 	return 0.0;
 }
@@ -245,6 +246,8 @@ int main(int argc,char **args)
 		return -1;
 	}
 
+	sleep(1);
+
 	i = 0;
 	while (i < DATA_CNT) {
 		memset(&mpu_result, 0, sizeof(mpu_result_t));
@@ -277,14 +280,14 @@ int main(int argc,char **args)
 		 *}
          */
 
-		show_result(mpu_result);
+		//show_result(mpu_result);
 
 		rad_x = data_2_rad(mpu_result.accel.xout, mpu_result.accel.zout);
 		angle_x = rad_2_angle(rad_x);
 		angle_filter_x = first_order_complementary_filtering(mpu_filter_info.k,
 				mpu_filter_info.angle_x, angle_x, mpu_result.gyro.xout);
 		mpu_filter_info.angle_x = angle_filter_x;
-		app_debug("rad_x: %f, angle_x: %f, angle_filter_x: %f", rad_x, angle_x, angle_filter_x);
+		//app_debug("rad_x: %f, angle_x: %f, angle_filter_x: %f", rad_x, angle_x, angle_filter_x);
 
 		rad_y = data_2_rad(mpu_result.accel.yout, mpu_result.accel.zout);
 		angle_y = rad_2_angle(rad_y);
@@ -292,7 +295,7 @@ int main(int argc,char **args)
 				mpu_filter_info.angle_y, angle_y, mpu_result.gyro.xout);
 		mpu_filter_info.angle_y = angle_filter_y;
 
-		app_debug("rad_y: %f, angle_y: %f, angle_filter_y: %f", rad_y, angle_y, angle_filter_y);
+		//app_debug("rad_y: %f, angle_y: %f, angle_filter_y: %f", rad_y, angle_y, angle_filter_y);
 
 		snprintf(buffer, BUF_SIZE, "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\n",
 				i, mpu_result.accel.xout, mpu_result.accel.yout, mpu_result.accel.zout,
